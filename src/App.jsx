@@ -147,6 +147,13 @@ export default function App() {
           </div>
         )}
       </div>
+      <footer className="text-center mt-16 text-base text-gray-500">
+        <hr className="my-6 border-gray-300" />
+        <p>
+          Developed with <span className="text-red-500">Hatred</span>{" "}
+          <span className="inline-block animate-bounce">😈</span>
+        </p>
+      </footer>
     </div>
   );
 }
