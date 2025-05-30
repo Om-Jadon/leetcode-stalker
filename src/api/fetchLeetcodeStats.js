@@ -1,4 +1,4 @@
-const endpoint = "/graphql";
+const endpoint = "/api/graphql";
 
 const statsQuery = `
   query userStats($username: String!) {

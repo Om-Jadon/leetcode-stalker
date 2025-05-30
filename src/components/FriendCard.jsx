@@ -26,8 +26,18 @@ export default function FriendCard({ user, stats, onRemove }) {
       </button>
 
       <div className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-gray-800 truncate">{user}</h2>
+        <div className="flex items-center mb-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-800">{user}</h2>
+            <a
+              href={`https://leetcode.com/${user}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-indigo-600 hover:underline"
+            >
+              View Profile
+            </a>
+          </div>
         </div>
 
         <div className="grid grid-cols-3 gap-3 mb-5 text-center">
