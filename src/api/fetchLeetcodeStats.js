@@ -19,6 +19,15 @@ const subsQuery = `
       id
       title
       timestamp
+      titleSlug
+    }
+  }
+`;
+
+const problemDetailsQuery = `
+  query questionDetails($titleSlug: String!) {
+    question(titleSlug: $titleSlug) {
+      difficulty
     }
   }
 `;
@@ -61,14 +70,67 @@ export async function fetchLeetcodeStats(username) {
   const inLast24h = recentSubs.filter(
     (sub) => nowUnix - sub.timestamp <= 86400
   );
-  const uniqueRecent = [...new Set(inLast24h.map((sub) => sub.title))];
+
+  // Create a map to get the latest timestamp for each unique problem
+  const problemMap = new Map();
+  inLast24h.forEach((sub) => {
+    const existing = problemMap.get(sub.title);
+    if (!existing || sub.timestamp > existing.timestamp) {
+      problemMap.set(sub.title, {
+        title: sub.title,
+        timestamp: sub.timestamp,
+        titleSlug: sub.titleSlug,
+      });
+    }
+  });
+
+  // Get difficulties for recent problems
+  const recentProblemsArray = Array.from(problemMap.values());
+  const problemsWithDifficulty = await Promise.all(
+    recentProblemsArray.map(async (problem) => {
+      try {
+        const difficultyRes = await fetch(endpoint, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            query: problemDetailsQuery,
+            variables: { titleSlug: problem.titleSlug },
+          }),
+        });
+
+        if (difficultyRes.ok) {
+          const difficultyData = await difficultyRes.json();
+          const difficulty =
+            difficultyData.data?.question?.difficulty || "Unknown";
+          return {
+            ...problem,
+            difficulty,
+          };
+        }
+      } catch (error) {
+        console.warn(`Failed to fetch difficulty for ${problem.title}:`, error);
+      }
+
+      // Fallback if difficulty fetch fails
+      return {
+        ...problem,
+        difficulty: "Unknown",
+      };
+    })
+  );
+
+  // Sort by timestamp (newest first)
+  const recentProblemsWithTime = problemsWithDifficulty.sort(
+    (a, b) => b.timestamp - a.timestamp
+  );
 
   return {
     easySolved,
     mediumSolved,
     hardSolved,
     totalSolved: easySolved + mediumSolved + hardSolved,
-    recentSolved: uniqueRecent.length,
-    recentProblems: uniqueRecent.slice(0, 5),
+    recentSolved: problemMap.size,
+    recentProblems: recentProblemsWithTime, // All 24h problems
+    recentProblemsForDisplay: recentProblemsWithTime.slice(0, 3), // First 3 for card display
   };
 }
