@@ -1,5 +1,34 @@
 const endpoint = "/api/graphql";
 
+// Query to fetch daily challenge
+const dailyChallengeQuery = `
+  query questionOfToday {
+    activeDailyCodingChallengeQuestion {
+      date
+      userStatus
+      link
+      question {
+        acRate
+        difficulty
+        freqBar
+        frontendQuestionId: questionFrontendId
+        isFavor
+        paidOnly: isPaidOnly
+        status
+        title
+        titleSlug
+        hasVideoSolution
+        hasSolution
+        topicTags {
+          name
+          id
+          slug
+        }
+      }
+    }
+  }
+`;
+
 const statsQuery = `
   query userStats($username: String!) {
     matchedUser(username: $username) {
@@ -133,4 +162,81 @@ export async function fetchLeetcodeStats(username) {
     recentProblems: recentProblemsWithTime, // All 24h problems
     recentProblemsForDisplay: recentProblemsWithTime.slice(0, 3), // First 3 for card display
   };
+}
+
+// Function to fetch daily challenge question
+export async function fetchDailyChallenge() {
+  const headers = { "Content-Type": "application/json" };
+
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ query: dailyChallengeQuery }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch daily challenge");
+    }
+
+    const data = await response.json();
+    const challenge = data.data?.activeDailyCodingChallengeQuestion;
+
+    if (!challenge) {
+      throw new Error("No daily challenge found");
+    }
+
+    return {
+      date: challenge.date,
+      question: {
+        title: challenge.question.title,
+        titleSlug: challenge.question.titleSlug,
+        difficulty: challenge.question.difficulty,
+        frontendQuestionId: challenge.question.frontendQuestionId,
+        acRate: challenge.question.acRate,
+        topicTags: challenge.question.topicTags || [],
+        paidOnly: challenge.question.paidOnly,
+      },
+      link: challenge.link,
+    };
+  } catch (error) {
+    console.error("Error fetching daily challenge:", error);
+    throw error;
+  }
+}
+
+// Function to check if a user has solved a specific problem
+export async function checkUserSolvedProblem(username, titleSlug) {
+  const headers = { "Content-Type": "application/json" };
+
+  const query = `
+    query recentAcSubmissions($username: String!, $limit: Int!) {
+      recentAcSubmissionList(username: $username, limit: $limit) {
+        titleSlug
+      }
+    }
+  `;
+
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        query,
+        variables: { username, limit: 200 }, // Check more submissions to be thorough
+      }),
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json();
+    const submissions = data.data?.recentAcSubmissionList || [];
+
+    return submissions.some((sub) => sub.titleSlug === titleSlug);
+  } catch (error) {
+    console.error(`Error checking if ${username} solved ${titleSlug}:`, error);
+    return false;
+  }
 }

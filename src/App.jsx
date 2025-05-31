@@ -3,6 +3,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import FriendCard from "./components/FriendCard";
 import AddFriendForm from "./components/AddFriendForm";
 import RecentSolvesBox from "./components/RecentSolvesBox";
+import QuestionOfTheDayBox from "./components/QuestionOfTheDayBox";
 import { fetchLeetcodeStats } from "./api/fetchLeetcodeStats";
 
 export default function App() {
@@ -107,8 +108,15 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4 sm:p-6">
+      {/* Question of the Day Box */}
+      <QuestionOfTheDayBox usernames={usernames} />
+
       {/* Recent Solves Box */}
-      <RecentSolvesBox statsMap={statsMap} usernames={usernames} />
+      <RecentSolvesBox
+        statsMap={statsMap}
+        usernames={usernames}
+        loadingUsers={loadingUsers}
+      />
 
       <div className="max-w-7xl mx-auto">
         <header className="text-center mb-8 sm:mb-10">

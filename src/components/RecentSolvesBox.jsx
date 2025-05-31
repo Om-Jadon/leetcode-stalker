@@ -1,5 +1,5 @@
 // RecentSolvesBox.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 // Helper function to format timestamp to IST
 const formatToIST = (timestamp) => {
@@ -48,26 +48,9 @@ const getDifficultyColors = (difficulty) => {
   }
 };
 
-export default function RecentSolvesBox({ statsMap, usernames }) {
-  // Default to collapsed on mobile screens (< 640px)
-  const [isCollapsed, setIsCollapsed] = useState(() => {
-    if (typeof window !== "undefined") {
-      return window.innerWidth < 640;
-    }
-    return false;
-  });
-
-  // Handle window resize to maintain mobile-first behavior
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 640 && !isCollapsed) {
-        setIsCollapsed(true);
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [isCollapsed]);
+export default function RecentSolvesBox({ statsMap, usernames, loadingUsers }) {
+  // Default to collapsed on all screens (always closed by default on reload)
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   // Collect all recent problems from all users
   const allRecentProblems = [];
@@ -88,15 +71,19 @@ export default function RecentSolvesBox({ statsMap, usernames }) {
     .sort((a, b) => b.timestamp - a.timestamp)
     .slice(0, 6);
 
-  if (usernames.length === 0 || latestProblems.length === 0) {
+  // Check if any users are loading or if we have no data yet
+  const hasLoadingUsers = loadingUsers && loadingUsers.size > 0;
+  const hasData = Object.keys(statsMap).length > 0;
+  const isLoading = !hasData && hasLoadingUsers;
+
+  if (usernames.length === 0) {
     return null;
   }
 
   return (
     <div
-      className="fixed top-4 right-4 z-40 w-80 max-w-[calc(100vw-2rem)] sm:w-96 lg:w-80 xl:w-96 
-                    sm:top-4 sm:right-4 
-                    max-sm:top-2 max-sm:right-2 max-sm:w-[calc(100vw-1rem)]"
+      className="hidden sm:block fixed top-4 right-4 z-40 w-80 max-w-[calc(100vw-2rem)] sm:w-96 lg:w-80 xl:w-96 
+                    sm:top-4 sm:right-4"
     >
       <div className="bg-gray-800/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-700 overflow-hidden">
         {/* Header */}
@@ -147,59 +134,93 @@ export default function RecentSolvesBox({ statsMap, usernames }) {
         {/* Content */}
         {!isCollapsed && (
           <div className="p-3 sm:p-4 space-y-2 sm:space-y-3 max-h-80 sm:max-h-96 overflow-y-auto">
-            {latestProblems.map((problem, index) => {
-              const colors = getDifficultyColors(problem.difficulty);
-              const problemUrl = `https://leetcode.com/problems/${problem.title
-                .toLowerCase()
-                .replace(/[^a-z0-9\s]/g, "")
-                .replace(/\s+/g, "-")}/`;
+            {isLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <svg
+                  className="animate-spin h-5 w-5 text-indigo-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                <span className="ml-2 text-sm text-gray-300">
+                  Loading recent solves...
+                </span>
+              </div>
+            ) : latestProblems.length === 0 ? (
+              <div className="text-center py-4">
+                <p className="text-sm text-gray-400">
+                  No recent solves available
+                </p>
+              </div>
+            ) : (
+              latestProblems.map((problem, index) => {
+                const colors = getDifficultyColors(problem.difficulty);
+                const problemUrl = `https://leetcode.com/problems/${problem.title
+                  .toLowerCase()
+                  .replace(/[^a-z0-9\s]/g, "")
+                  .replace(/\s+/g, "-")}/`;
 
-              return (
-                <div key={`${problem.username}-${problem.title}-${index}`}>
-                  <a
-                    href={problemUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`block p-2 sm:p-3 rounded-lg hover:bg-gray-600/50 transition-colors duration-150 cursor-pointer border ${colors.bg} ${colors.border} hover:border-gray-500`}
-                  >
-                    <div className="flex items-start justify-between mb-1 sm:mb-2">
-                      <div className="flex-1 min-w-0">
-                        <div
-                          className={`text-xs sm:text-sm font-semibold truncate hover:text-indigo-300 transition-colors ${colors.text} mb-1`}
-                        >
-                          {problem.title}
-                        </div>
-                        <div className="flex items-center gap-1 sm:gap-2 text-xs">
-                          <span className="text-gray-400 flex-shrink-0">
-                            by
-                          </span>
-                          <a
-                            href={`https://leetcode.com/${problem.username}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-indigo-400 hover:text-indigo-300 font-medium truncate max-w-[100px] sm:max-w-none"
-                            onClick={(e) => e.stopPropagation()}
+                return (
+                  <div key={`${problem.username}-${problem.title}-${index}`}>
+                    <a
+                      href={problemUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`block p-2 sm:p-3 rounded-lg hover:bg-gray-600/50 transition-colors duration-150 cursor-pointer border ${colors.bg} ${colors.border} hover:border-gray-500`}
+                    >
+                      <div className="flex items-start justify-between mb-1 sm:mb-2">
+                        <div className="flex-1 min-w-0">
+                          <div
+                            className={`text-xs sm:text-sm font-semibold truncate hover:text-indigo-300 transition-colors ${colors.text} mb-1`}
                           >
-                            {problem.username}
-                          </a>
+                            {problem.title}
+                          </div>
+                          <div className="flex items-center gap-1 sm:gap-2 text-xs">
+                            <span className="text-gray-400 flex-shrink-0">
+                              by
+                            </span>
+                            <a
+                              href={`https://leetcode.com/${problem.username}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-indigo-400 hover:text-indigo-300 font-medium truncate max-w-[100px] sm:max-w-none"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {problem.username}
+                            </a>
+                          </div>
                         </div>
+                        {problem.difficulty &&
+                          problem.difficulty !== "Unknown" && (
+                            <span
+                              className={`px-1.5 sm:px-2 py-1 text-xs font-medium rounded-full flex-shrink-0 ml-1 sm:ml-2 ${colors.badge}`}
+                            >
+                              {problem.difficulty}
+                            </span>
+                          )}
                       </div>
-                      {problem.difficulty &&
-                        problem.difficulty !== "Unknown" && (
-                          <span
-                            className={`px-1.5 sm:px-2 py-1 text-xs font-medium rounded-full flex-shrink-0 ml-1 sm:ml-2 ${colors.badge}`}
-                          >
-                            {problem.difficulty}
-                          </span>
-                        )}
-                    </div>
-                    <div className="text-xs text-gray-300 font-medium">
-                      {formatToIST(problem.timestamp)}
-                    </div>
-                  </a>
-                </div>
-              );
-            })}
+                      <div className="text-xs text-gray-300 font-medium">
+                        {formatToIST(problem.timestamp)}
+                      </div>
+                    </a>
+                  </div>
+                );
+              })
+            )}
           </div>
         )}
       </div>
