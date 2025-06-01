@@ -1,12 +1,37 @@
-# React + Vite
+# ⚔️ LeetCode Stalker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> **Stalk them up. Bring them down.**  
+A brutally simple web app to track your friends’ LeetCode progress — whether to admire or humiliate them is up to you.
 
-Currently, two official plugins are available:
+🕸️ **Live here** → [leetcode-stalker.vercel.app](https://leetcode-stalker.vercel.app/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## 🚀 Features
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- 📈 Tracks total solved (Easy / Medium / Hard)
+- 🕒 Shows problems solved in the last 24 hours
+- 🧠 Lists recent problems
+- 🔄 Auto-refreshes stats every 10 minutes
+- 🗑 Remove friends when they stop grinding
+- 🌟 Displays the LeetCode Problem of the Day and who solved it
+- 📝 Shows latest solves by your friends
+
+---
+
+## ⚙️ Tech Stack
+
+- React + Vite  
+- Tailwind CSS  
+- LeetCode GraphQL API  
+- Vercel Hosting
+
+---
+
+## 🛠 Run Locally
+
+```bash
+git clone https://github.com/Om-Jadon/leetcode-stalker.git
+cd leetcode-stalker
+npm install
+vercel dev
