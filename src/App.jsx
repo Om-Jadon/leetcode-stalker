@@ -14,8 +14,12 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(new Set());
   const [errorUsers, setErrorUsers] = useState(new Set());
+  const [refreshTrigger, setRefreshTrigger] = useState(Date.now());
 
   const reloadAll = useCallback(async () => {
+    // Trigger refresh for Question of the Day and Recent Solves
+    setRefreshTrigger(Date.now());
+
     setIsLoading(true);
     setErrorUsers(new Set());
     // Set loading state for all users during refresh
@@ -109,7 +113,10 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4 sm:p-6">
       {/* Question of the Day Box */}
-      <QuestionOfTheDayBox usernames={usernames} />
+      <QuestionOfTheDayBox
+        usernames={usernames}
+        refreshTrigger={refreshTrigger}
+      />
 
       {/* Recent Solves Box */}
       <RecentSolvesBox

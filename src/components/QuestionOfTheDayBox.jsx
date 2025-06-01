@@ -39,7 +39,7 @@ const getDifficultyColors = (difficulty) => {
   }
 };
 
-export default function QuestionOfTheDayBox({ usernames }) {
+export default function QuestionOfTheDayBox({ usernames, refreshTrigger }) {
   // Default to collapsed on all screens (always closed by default on reload)
   const [isCollapsed, setIsCollapsed] = useState(true);
 
@@ -90,7 +90,7 @@ export default function QuestionOfTheDayBox({ usernames }) {
     };
 
     loadDailyChallenge();
-  }, [usernames]);
+  }, [usernames, refreshTrigger]);
 
   if (usernames.length === 0) {
     return null;
