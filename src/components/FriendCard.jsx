@@ -183,24 +183,193 @@ export default function FriendCard({
           </div>
         </div>
 
-        <div className="space-y-3 sm:space-y-4">
-          <div className="flex justify-between items-center">
-            <span className="text-xs sm:text-sm font-medium text-gray-400">
+        <div className="space-y-4 sm:space-y-5">
+          <div className="flex justify-between items-center bg-gray-700/50 rounded-lg p-3 sm:p-4">
+            <span className="text-sm sm:text-base font-semibold text-gray-300">
               Total Solved
             </span>
-            <span className="font-bold text-white text-base sm:text-lg">
+            <span className="font-bold text-white text-xl sm:text-2xl">
               {stats.totalSolved || 0}
             </span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs sm:text-sm font-medium text-gray-400">
+          <div className="flex justify-between items-center bg-blue-900/30 rounded-lg p-3 sm:p-4 border border-blue-800">
+            <span className="text-sm sm:text-base font-semibold text-blue-300">
               Recent Activity
             </span>
-            <span className="font-semibold text-blue-400 text-sm sm:text-base">
+            <span className="font-bold text-blue-200 text-lg sm:text-xl">
               {stats.recentSolved || 0} today
             </span>
           </div>
         </div>
+
+        {/* 3:5:2 Ratio Recommendations */}
+        {stats.mediumSolved > 0 && (
+          <div className="mt-2 sm:mt-3 pt-2 border-t border-gray-700/50">
+            <div className="mb-1">
+              <h3 className="text-xs font-medium text-gray-300">
+                Suggested Ratio Balance (3:5:2)
+              </h3>
+            </div>
+            <div className="grid grid-cols-2 gap-1.5">
+              {(() => {
+                const currentEasy = stats.easySolved || 0;
+                const currentMedium = stats.mediumSolved || 0;
+                const currentHard = stats.hardSolved || 0;
+
+                // Determine the base using medium as default, but switch if others would go negative
+                let baseCount, baseType;
+
+                // Try medium as base first
+                const easyFromMedium = Math.ceil((currentMedium * 3) / 5);
+                const hardFromMedium = Math.ceil((currentMedium * 2) / 5);
+
+                if (
+                  easyFromMedium >= currentEasy &&
+                  hardFromMedium >= currentHard
+                ) {
+                  // Medium base works fine
+                  baseCount = currentMedium;
+                  baseType = "medium";
+                } else {
+                  // Find the highest count to use as base
+                  const maxCount = Math.max(
+                    currentEasy,
+                    currentMedium,
+                    currentHard
+                  );
+
+                  if (maxCount === currentEasy) {
+                    baseCount = currentEasy;
+                    baseType = "easy";
+                  } else if (maxCount === currentHard) {
+                    baseCount = currentHard;
+                    baseType = "hard";
+                  } else {
+                    baseCount = currentMedium;
+                    baseType = "medium";
+                  }
+                }
+
+                // Calculate recommendations for all three difficulties
+                let recommendedEasy, recommendedMedium, recommendedHard;
+
+                if (baseType === "easy") {
+                  recommendedEasy = baseCount;
+                  recommendedMedium = Math.ceil((baseCount * 5) / 3);
+                  recommendedHard = Math.ceil((baseCount * 2) / 3);
+                } else if (baseType === "hard") {
+                  recommendedEasy = Math.ceil((baseCount * 3) / 2);
+                  recommendedMedium = Math.ceil((baseCount * 5) / 2);
+                  recommendedHard = baseCount;
+                } else {
+                  // medium base
+                  recommendedEasy = Math.ceil((baseCount * 3) / 5);
+                  recommendedMedium = baseCount;
+                  recommendedHard = Math.ceil((baseCount * 2) / 5);
+                }
+
+                // Calculate differences for non-base difficulties
+                const easyDiff = recommendedEasy - currentEasy;
+                const mediumDiff = recommendedMedium - currentMedium;
+                const hardDiff = recommendedHard - currentHard;
+
+                // Create suggestion boxes for the two non-base difficulties
+                const suggestions = [];
+
+                if (baseType !== "easy") {
+                  suggestions.push(
+                    <div
+                      key="easy"
+                      className="p-1.5 bg-green-900/40 rounded border border-green-700"
+                    >
+                      <div className="flex items-center justify-between mb-0.5">
+                        <div className="text-xs text-green-300 font-medium">
+                          Easy Suggested
+                        </div>
+                        <div className="text-sm font-bold text-green-200">
+                          {recommendedEasy}
+                        </div>
+                      </div>
+                      {easyDiff !== 0 && (
+                        <div
+                          className={`text-xs font-medium ${
+                            easyDiff > 0 ? "text-orange-300" : "text-green-400"
+                          }`}
+                        >
+                          {easyDiff > 0
+                            ? `+${easyDiff}`
+                            : `${Math.abs(easyDiff)} over`}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (baseType !== "medium") {
+                  suggestions.push(
+                    <div
+                      key="medium"
+                      className="p-1.5 bg-yellow-900/40 rounded border border-yellow-700"
+                    >
+                      <div className="flex items-center justify-between mb-0.5">
+                        <div className="text-xs text-yellow-300 font-medium">
+                          Medium Suggested
+                        </div>
+                        <div className="text-sm font-bold text-yellow-200">
+                          {recommendedMedium}
+                        </div>
+                      </div>
+                      {mediumDiff !== 0 && (
+                        <div
+                          className={`text-xs font-medium ${
+                            mediumDiff > 0
+                              ? "text-orange-300"
+                              : "text-green-400"
+                          }`}
+                        >
+                          {mediumDiff > 0
+                            ? `+${mediumDiff}`
+                            : `${Math.abs(mediumDiff)} over`}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (baseType !== "hard") {
+                  suggestions.push(
+                    <div
+                      key="hard"
+                      className="p-1.5 bg-red-900/40 rounded border border-red-700"
+                    >
+                      <div className="flex items-center justify-between mb-0.5">
+                        <div className="text-xs text-red-300 font-medium">
+                          Hard Suggested
+                        </div>
+                        <div className="text-sm font-bold text-red-200">
+                          {recommendedHard}
+                        </div>
+                      </div>
+                      {hardDiff !== 0 && (
+                        <div
+                          className={`text-xs font-medium ${
+                            hardDiff > 0 ? "text-orange-300" : "text-green-400"
+                          }`}
+                        >
+                          {hardDiff > 0
+                            ? `+${hardDiff}`
+                            : `${Math.abs(hardDiff)} over`}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                return suggestions;
+              })()}
+            </div>
+          </div>
+        )}
 
         {stats.recentProblemsForDisplay?.length > 0 && (
           <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-gray-700">
