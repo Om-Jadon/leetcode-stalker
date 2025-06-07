@@ -61,7 +61,16 @@ const problemDetailsQuery = `
   }
 `;
 
-export async function fetchLeetcodeStats(username) {
+// Query to check if user exists
+const userExistsQuery = `
+  query checkUserExists($username: String!) {
+    matchedUser(username: $username) {
+      username
+    }
+  }
+`;
+
+export async function fetchLeetcodeStats(username, filterMode = "24hours") {
   const headers = { "Content-Type": "application/json" };
 
   const [statsRes, subsRes] = await Promise.all([
@@ -96,13 +105,37 @@ export async function fetchLeetcodeStats(username) {
 
   const recentSubs = subsData.data?.recentAcSubmissionList || [];
   const nowUnix = Date.now() / 1000;
-  const inLast24h = recentSubs.filter(
+
+  // Always fetch last 24 hours first
+  const last24hSubs = recentSubs.filter(
     (sub) => nowUnix - sub.timestamp <= 86400
   );
 
+  // Then filter based on mode
+  let filteredSubs;
+  if (filterMode === "today") {
+    // Filter for today after 12 AM from the 24h data
+    const today = new Date();
+    const todayMidnight = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+      0,
+      0,
+      0
+    );
+    const todayMidnightUnix = todayMidnight.getTime() / 1000;
+    filteredSubs = last24hSubs.filter(
+      (sub) => sub.timestamp >= todayMidnightUnix
+    );
+  } else {
+    // Default: use all 24 hours data
+    filteredSubs = last24hSubs;
+  }
+
   // Create a map to get the latest timestamp for each unique problem
   const problemMap = new Map();
-  inLast24h.forEach((sub) => {
+  filteredSubs.forEach((sub) => {
     const existing = problemMap.get(sub.title);
     if (!existing || sub.timestamp > existing.timestamp) {
       problemMap.set(sub.title, {
@@ -237,6 +270,33 @@ export async function checkUserSolvedProblem(username, titleSlug) {
     return submissions.some((sub) => sub.titleSlug === titleSlug);
   } catch (error) {
     console.error(`Error checking if ${username} solved ${titleSlug}:`, error);
+    return false;
+  }
+}
+
+// Function to check if a LeetCode user exists
+export async function checkUserExists(username) {
+  const headers = { "Content-Type": "application/json" };
+
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        query: userExistsQuery,
+        variables: { username },
+      }),
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json();
+    // If matchedUser is null, the user doesn't exist
+    return data.data?.matchedUser !== null;
+  } catch (error) {
+    console.error(`Error checking if user ${username} exists:`, error);
     return false;
   }
 }

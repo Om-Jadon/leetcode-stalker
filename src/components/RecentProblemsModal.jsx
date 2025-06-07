@@ -54,7 +54,18 @@ export default function RecentProblemsModal({
   onClose,
   user,
   problems,
+  filterMode = "24hours",
 }) {
+  const getFilterText = () => {
+    return filterMode === "today" ? "Today" : "Last 24h";
+  };
+
+  const getEmptyStateText = () => {
+    return filterMode === "today"
+      ? "No problems solved today"
+      : "No problems solved in the last 24 hours";
+  };
+
   if (!problems || problems.length === 0) {
     return (
       <Modal
@@ -79,9 +90,7 @@ export default function RecentProblemsModal({
           <h3 className="mt-2 text-sm font-medium text-gray-300">
             No recent problems
           </h3>
-          <p className="mt-1 text-sm text-gray-400">
-            No problems solved in the last 24 hours
-          </p>
+          <p className="mt-1 text-sm text-gray-400">{getEmptyStateText()}</p>
         </div>
       </Modal>
     );
@@ -91,7 +100,7 @@ export default function RecentProblemsModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`${user}'s Problems (Last 24h) - ${problems.length}`}
+      title={`${user}'s Problems (${getFilterText()}) - ${problems.length}`}
     >
       <div className="space-y-3">
         {problems.map((problem, i) => {

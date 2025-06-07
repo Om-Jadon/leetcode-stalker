@@ -57,6 +57,7 @@ export default function FriendCard({
   isLoading,
   hasError,
   onRetry,
+  filterMode,
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -194,10 +195,10 @@ export default function FriendCard({
           </div>
           <div className="flex justify-between items-center bg-blue-900/30 rounded-lg p-3 sm:p-4 border border-blue-800">
             <span className="text-sm sm:text-base font-semibold text-blue-300">
-              Recent Activity
+              {filterMode === "today" ? "Solved Today" : "Solved in 24 Hours"}
             </span>
             <span className="font-bold text-blue-200 text-lg sm:text-xl">
-              {stats.recentSolved || 0} today
+              {stats.recentSolved || 0}
             </span>
           </div>
         </div>
@@ -454,6 +455,7 @@ export default function FriendCard({
         onClose={() => setIsModalOpen(false)}
         user={user}
         problems={stats.recentProblems || []}
+        filterMode={filterMode}
       />
     </div>
   );

@@ -4,7 +4,8 @@ import FriendCard from "./components/FriendCard";
 import AddFriendForm from "./components/AddFriendForm";
 import RecentSolvesBox from "./components/RecentSolvesBox";
 import QuestionOfTheDayBox from "./components/QuestionOfTheDayBox";
-import { fetchLeetcodeStats } from "./api/fetchLeetcodeStats";
+import Notification from "./components/Notification";
+import { fetchLeetcodeStats, checkUserExists } from "./api/fetchLeetcodeStats";
 
 export default function App() {
   const [usernames, setUsernames] = useState(
@@ -15,6 +16,28 @@ export default function App() {
   const [loadingUsers, setLoadingUsers] = useState(new Set());
   const [errorUsers, setErrorUsers] = useState(new Set());
   const [refreshTrigger, setRefreshTrigger] = useState(Date.now());
+  const [filterMode, setFilterMode] = useState(
+    () => localStorage.getItem("recentSolvesFilterMode") || "24hours"
+  );
+  const [notification, setNotification] = useState(null);
+
+  const loadStats = useCallback(
+    async (username, mode = filterMode) => {
+      try {
+        const stats = await fetchLeetcodeStats(username, mode);
+        setStatsMap((prev) => ({ ...prev, [username]: stats }));
+        setErrorUsers((prev) => {
+          const next = new Set(prev);
+          next.delete(username);
+          return next;
+        });
+      } catch (err) {
+        console.error("Error loading stats for", username, err);
+        setErrorUsers((prev) => new Set([...prev, username]));
+      }
+    },
+    [filterMode]
+  );
 
   const reloadAll = useCallback(async () => {
     // Trigger refresh for Question of the Day and Recent Solves
@@ -26,13 +49,24 @@ export default function App() {
     setLoadingUsers(new Set(usernames));
 
     try {
-      await Promise.all(usernames.map(loadStats));
+      await Promise.all(
+        usernames.map((username) => loadStats(username, filterMode))
+      );
     } finally {
       setIsLoading(false);
       // Clear loading state for all users after refresh
       setLoadingUsers(new Set());
     }
-  }, [usernames]);
+  }, [usernames, filterMode, loadStats]);
+
+  // Toggle filter mode and save to localStorage
+  const toggleFilterMode = () => {
+    const newMode = filterMode === "24hours" ? "today" : "24hours";
+    setFilterMode(newMode);
+    localStorage.setItem("recentSolvesFilterMode", newMode);
+    // Trigger a refresh to update the data with new filter
+    reloadAll();
+  };
 
   useEffect(() => {
     if (usernames.length > 0) {
@@ -48,17 +82,46 @@ export default function App() {
 
   async function addUser(username) {
     if (username && !usernames.includes(username)) {
+      // Check if user exists first
+      const userExists = await checkUserExists(username);
+
+      if (!userExists) {
+        setNotification({
+          type: "error",
+          message: `User "${username}" does not exist on LeetCode. Please check the username and try again.`,
+        });
+        return;
+      }
+
       const updated = [...usernames, username];
       setUsernames(updated);
       localStorage.setItem("leetcodeUsers", JSON.stringify(updated));
 
       // Set loading state for this specific user
       setLoadingUsers((prev) => new Set([...prev, username]));
-      await loadStats(username);
-      setLoadingUsers((prev) => {
-        const next = new Set(prev);
-        next.delete(username);
-        return next;
+
+      try {
+        await loadStats(username, filterMode);
+        setNotification({
+          type: "success",
+          message: `Successfully added ${username}!`,
+        });
+      } catch {
+        setNotification({
+          type: "error",
+          message: `Failed to load stats for ${username}. Please try again.`,
+        });
+      } finally {
+        setLoadingUsers((prev) => {
+          const next = new Set(prev);
+          next.delete(username);
+          return next;
+        });
+      }
+    } else if (usernames.includes(username)) {
+      setNotification({
+        type: "warning",
+        message: `User "${username}" is already added.`,
       });
     }
   }
@@ -85,24 +148,9 @@ export default function App() {
     });
   }
 
-  async function loadStats(username) {
-    try {
-      const stats = await fetchLeetcodeStats(username);
-      setStatsMap((prev) => ({ ...prev, [username]: stats }));
-      setErrorUsers((prev) => {
-        const next = new Set(prev);
-        next.delete(username);
-        return next;
-      });
-    } catch (err) {
-      console.error("Error loading stats for", username, err);
-      setErrorUsers((prev) => new Set([...prev, username]));
-    }
-  }
-
   async function retryUser(username) {
     setLoadingUsers((prev) => new Set([...prev, username]));
-    await loadStats(username);
+    await loadStats(username, filterMode);
     setLoadingUsers((prev) => {
       const next = new Set(prev);
       next.delete(username);
@@ -137,7 +185,7 @@ export default function App() {
 
         <div className="mb-8 sm:mb-10 max-w-2xl mx-auto">
           <AddFriendForm addFriend={addUser} />
-          <div className="flex justify-center mt-6 sm:mt-10">
+          <div className="flex justify-center items-center gap-4 mt-6 sm:mt-10">
             <button
               onClick={reloadAll}
               disabled={isLoading || usernames.length === 0}
@@ -175,6 +223,28 @@ export default function App() {
                 "Refresh All Stats"
               )}
             </button>
+            {/* Filter Mode Toggle Button beside refresh button */}
+            {usernames.length > 0 && (
+              <button
+                onClick={toggleFilterMode}
+                className="flex items-center gap-2 bg-gray-800/95 backdrop-blur-sm text-white px-3 py-2 rounded-lg shadow-lg border border-gray-700 hover:bg-gray-700/95 transition-colors text-sm font-medium cursor-pointer"
+              >
+                <svg
+                  className="w-4 h-4 text-indigo-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                  />
+                </svg>
+                <span>{filterMode === "24hours" ? "Last 24h" : "Today"}</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -226,6 +296,7 @@ export default function App() {
                   isLoading={loadingUsers.has(user)}
                   hasError={errorUsers.has(user)}
                   onRetry={() => retryUser(user)}
+                  filterMode={filterMode}
                 />
               ))}
           </div>
@@ -267,6 +338,13 @@ export default function App() {
           </span>
         </p>
       </footer>
+      {notification && (
+        <Notification
+          type={notification.type}
+          message={notification.message}
+          onClose={() => setNotification(null)}
+        />
+      )}
     </div>
   );
 }
