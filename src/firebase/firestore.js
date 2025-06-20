@@ -117,6 +117,20 @@ export const userService = {
     const userRef = doc(db, "users", userId);
     return onSnapshot(userRef, callback);
   },
+
+  // Check if username is available (unique)
+  async checkUsernameAvailability(username) {
+    try {
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("username", "==", username.trim()));
+      const querySnapshot = await getDocs(q);
+
+      return querySnapshot.empty; // true if username is available
+    } catch (error) {
+      console.error("Error checking username availability:", error);
+      throw error;
+    }
+  },
 };
 
 // Tracked Users management operations (LeetCode usernames being tracked)

@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { LargeSpinnerSkeleton } from "./LoadingSkeleton";
 import {
   friendsService,
   friendRequestsService,
   chatService,
   userService,
-} from "../firebase";
+} from "../firebase/firestore";
 
-export default function LeftSidebar({ isOpen, onToggle }) {
-  const { user, signInWithGoogle } = useAuth();
+export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
+  const { user, signInWithGoogle, loading, hasCompleteProfile } = useAuth();
   const [activeTab, setActiveTab] = useState("friends"); // 'friends', 'search', 'requests', 'chat'
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -310,7 +311,14 @@ export default function LeftSidebar({ isOpen, onToggle }) {
           </button>
         </div>
 
-        {!user ? (
+        {loading ? (
+          <div className="flex-1 flex items-center justify-center p-4">
+            <div className="text-center space-y-4">
+              <LargeSpinnerSkeleton />
+              <p className="text-neutral-400 text-sm">Loading...</p>
+            </div>
+          </div>
+        ) : !user ? (
           <div className="flex-1 flex items-center justify-center p-4">
             <div className="text-center">
               <p className="text-gray-400 mb-4">
@@ -321,6 +329,38 @@ export default function LeftSidebar({ isOpen, onToggle }) {
                 className="bg-amber-600 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition-colors cursor-pointer"
               >
                 Sign in with Google
+              </button>
+            </div>
+          </div>
+        ) : !hasCompleteProfile ? (
+          <div className="flex-1 flex items-center justify-center p-4">
+            <div className="text-center space-y-4">
+              <svg
+                className="w-12 h-12 text-amber-500 mx-auto"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <div>
+                <p className="text-white mb-2 font-medium">
+                  Complete Your Profile
+                </p>
+                <p className="text-neutral-400 text-sm mb-4">
+                  Set up your username and LeetCode ID to access chat features
+                </p>
+              </div>
+              <button
+                onClick={onOpenProfileSetup}
+                className="bg-amber-600 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-colors font-medium cursor-pointer"
+              >
+                Complete Profile
               </button>
             </div>
           </div>

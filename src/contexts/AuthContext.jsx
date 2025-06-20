@@ -6,12 +6,14 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
+import { authService } from "../firebase/auth";
 import {
-  authService,
   userService,
   syncService,
   trackedUsersService,
-} from "../firebase";
+} from "../firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "../firebase/config";
 
 const AuthContext = createContext({});
 
@@ -55,13 +57,12 @@ export const AuthProvider = ({ children }) => {
   // Simple data merge when user signs in with Google after being a guest
   const syncUserData = useCallback(async (userId) => {
     try {
-      // Get local data from guest usage
+      // Get local tracked users from guest usage
       const localTrackedUsers = JSON.parse(
         localStorage.getItem("leetcodeUsers") || "[]"
       );
-      const localLeetCodeId = localStorage.getItem("userLeetcodeId") || "";
 
-      // Get existing cloud data (if any)
+      // Get existing cloud tracked users (if any)
       const userData = await userService.getUser(userId);
       const cloudTrackedUsers = userData?.trackedUsers || [];
 
@@ -79,13 +80,6 @@ export const AuthProvider = ({ children }) => {
         await syncService.syncLocalToCloud(userId, {
           trackedUsers: mergedTrackedUsers,
         });
-      }
-
-      // Sync LeetCode ID
-      if (localLeetCodeId && !userData?.leetcodeId) {
-        await userService.updateUser(userId, { leetcodeId: localLeetCodeId });
-      } else if (userData?.leetcodeId && !localLeetCodeId) {
-        localStorage.setItem("userLeetcodeId", userData.leetcodeId);
       }
     } catch (error) {
       console.error("Error syncing user data:", error);
@@ -107,12 +101,19 @@ export const AuthProvider = ({ children }) => {
           // Fetch user profile data from Firestore and merge with Firebase Auth user
           try {
             const userDoc = await userService.getUser(currentUser.uid);
-            const enhancedUser = {
-              ...currentUser,
-              username: userDoc?.username || "",
-              leetcodeId: userDoc?.leetcodeId || "",
-            };
-            setUser(enhancedUser);
+
+            if (userDoc && userDoc.username && userDoc.leetcodeId) {
+              // User has complete profile
+              const enhancedUser = {
+                ...currentUser,
+                username: userDoc.username,
+                leetcodeId: userDoc.leetcodeId,
+              };
+              setUser(enhancedUser);
+            } else {
+              // User only has Firebase auth, no profile yet
+              setUser(currentUser);
+            }
           } catch (error) {
             console.error("Error fetching user profile:", error);
             setUser(currentUser);
@@ -142,12 +143,19 @@ export const AuthProvider = ({ children }) => {
         // Fetch user profile data from Firestore and merge with Firebase Auth user
         try {
           const userDoc = await userService.getUser(firebaseUser.uid);
-          const enhancedUser = {
-            ...firebaseUser,
-            username: userDoc?.username || "",
-            leetcodeId: userDoc?.leetcodeId || "",
-          };
-          setUser(enhancedUser);
+
+          if (userDoc && userDoc.username && userDoc.leetcodeId) {
+            // User has complete profile
+            const enhancedUser = {
+              ...firebaseUser,
+              username: userDoc.username,
+              leetcodeId: userDoc.leetcodeId,
+            };
+            setUser(enhancedUser);
+          } else {
+            // User only has Firebase auth, no profile yet
+            setUser(firebaseUser);
+          }
         } catch (error) {
           console.error("Error fetching user profile:", error);
           setUser(firebaseUser);
@@ -162,52 +170,19 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe;
   }, [syncUserData]);
 
-  // Sign in with Google
+  // Sign in with Google - only creates Firebase auth user, doesn't create profile
   const signInWithGoogle = async () => {
     try {
       setLoading(true);
       const firebaseUser = await authService.signInWithGoogle();
 
-      // Check if user document already exists
-      let userDoc = await userService.getUser(firebaseUser.uid);
-
-      if (!userDoc) {
-        // Only create a new user document if one doesn't exist
-        const userData = {
-          username: firebaseUser.displayName || "",
-          email: firebaseUser.email || "",
-          leetcodeId: "", // Will be set later by user
-        };
-
-        await userService.createUser(firebaseUser.uid, userData);
-        userDoc = await userService.getUser(firebaseUser.uid);
-      } else {
-        // User exists, just update last login
-        await userService.updateUser(firebaseUser.uid, {
-          lastLogin: new Date().toISOString(),
-        });
-      }
-
-      const hasCompleteProfile =
-        userDoc && userDoc.username && userDoc.leetcodeId;
-
       // Sync data between localStorage and Firestore
       await syncUserData(firebaseUser.uid);
 
-      // Create enhanced user object with profile data
-      const enhancedUser = {
-        ...firebaseUser,
-        username: userDoc?.username || "",
-        leetcodeId: userDoc?.leetcodeId || "",
-      };
+      // Set the Firebase user object in state (no profile data yet)
+      setUser(firebaseUser);
 
-      // Set the enhanced user object in state
-      setUser(enhancedUser);
-
-      return {
-        ...enhancedUser,
-        hasCompleteProfile,
-      };
+      return firebaseUser;
     } catch (error) {
       console.error("Error signing in with Google:", error);
       setLoading(false);
@@ -226,17 +201,38 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Create complete user profile (for new authenticated users)
+  // Create complete user profile (after Google sign-in)
   const createUserProfile = async (username, leetcodeId) => {
     try {
       if (user) {
-        await userService.updateUser(user.uid, {
-          username,
-          leetcodeId,
-          createdAt: new Date().toISOString(),
-        });
-        // Update the local user object
-        setUser((prev) => ({ ...prev, username, leetcodeId }));
+        // Check if username is already taken
+        const isUsernameAvailable = await userService.checkUsernameAvailability(
+          username.trim()
+        );
+        if (!isUsernameAvailable) {
+          throw new Error(
+            "Username is already taken. Please choose another one."
+          );
+        }
+
+        // Create user document with profile data
+        const userData = {
+          username: username.trim(),
+          email: user.email || "",
+          leetcodeId: leetcodeId.trim(),
+        };
+
+        await userService.createUser(user.uid, userData);
+
+        // Update the local user object with profile data
+        const enhancedUser = {
+          ...user,
+          username: username.trim(),
+          leetcodeId: leetcodeId.trim(),
+        };
+
+        setUser(enhancedUser);
+        return enhancedUser;
       }
     } catch (error) {
       console.error("Error creating user profile:", error);
@@ -252,6 +248,21 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Error updating LeetCode ID:", error);
+      throw error;
+    }
+  };
+
+  // Check if username is available (unique)
+  const checkUsernameAvailability = async (username) => {
+    try {
+      // Query Firestore to check if username already exists
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("username", "==", username.trim()));
+      const querySnapshot = await getDocs(q);
+
+      return querySnapshot.empty; // true if username is available
+    } catch (error) {
+      console.error("Error checking username availability:", error);
       throw error;
     }
   };
@@ -316,6 +327,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     trackedUsers, // LeetCode usernames being tracked (reactive state)
     isAuthenticated: !!user, // True only for authenticated Google users
+    hasCompleteProfile: !!(user && user.username && user.leetcodeId), // True if user has profile setup
     isAnonymous: false, // Always false since we removed anonymous auth
     signInWithGoogle,
     signOut,
@@ -326,6 +338,7 @@ export const AuthProvider = ({ children }) => {
     addTrackedUser,
     removeTrackedUser,
     getCurrentTrackedUsers,
+    checkUsernameAvailability, // Expose the new function
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

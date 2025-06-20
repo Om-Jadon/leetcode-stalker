@@ -5,6 +5,7 @@ import AddFriendForm from "./components/AddFriendForm";
 import Notification from "./components/Notification";
 import LeftSidebar from "./components/LeftSidebar";
 import RightSidebar from "./components/RightSidebar";
+import ProfileSetupModal from "./components/ProfileSetupModal";
 import { fetchLeetcodeStats, checkUserExists } from "./api/fetchLeetcodeStats";
 import { useAuth } from "./contexts/AuthContext";
 
@@ -14,30 +15,15 @@ export default function App() {
     trackedUsers,
     addFriend: addTrackedUser,
     removeFriend: removeTrackedUser,
+    loading: authLoading,
+    hasCompleteProfile,
   } = useAuth();
 
   // UI State
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
   const [rightSidebarMode, setRightSidebarMode] = useState("profile"); // "profile", "recent-solves", "qotd"
-
-  // User's own LeetCode ID from localStorage (for guest users)
-  const [userLeetcodeId, setUserLeetcodeId] = useState(
-    () => localStorage.getItem("userLeetcodeId") || ""
-  );
-
-  // Get the current user's LeetCode ID from multiple sources
-  const getCurrentUserLeetCodeId = () => {
-    return (
-      user?.leetcodeId ||
-      userLeetcodeId ||
-      localStorage.getItem("userLeetcodeId") ||
-      ""
-    );
-  };
-
-  // Get the current effective LeetCode ID
-  const currentLeetCodeId = getCurrentUserLeetCodeId();
+  const [showProfileSetupModal, setShowProfileSetupModal] = useState(false);
 
   // Friends and stats data
   const [usernames, setUsernames] = useState([]);
@@ -52,19 +38,6 @@ export default function App() {
   const [notification, setNotification] = useState(null);
   const [nextRefreshTime, setNextRefreshTime] = useState(null);
   const [timeUntilRefresh, setTimeUntilRefresh] = useState(null);
-
-  // Sync localStorage changes with state for guest users
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const newLeetCodeId = localStorage.getItem("userLeetcodeId") || "";
-      if (!user && newLeetCodeId !== userLeetcodeId) {
-        setUserLeetcodeId(newLeetCodeId);
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [user, userLeetcodeId]);
 
   // Handle filter mode change
   const handleFilterModeChange = (newMode) => {
@@ -108,20 +81,19 @@ export default function App() {
 
   // Sync usernames with tracked users and user's own ID
   useEffect(() => {
-    // Use trackedUsers from context (which is synced with localStorage)
     let allUsernames = [...trackedUsers];
 
-    // Ensure user's own ID is first in the list if it exists
-    if (currentLeetCodeId && !allUsernames.includes(currentLeetCodeId)) {
-      allUsernames = [currentLeetCodeId, ...allUsernames];
-    } else if (currentLeetCodeId && allUsernames.includes(currentLeetCodeId)) {
-      // Move user's ID to the front
-      allUsernames = allUsernames.filter((u) => u !== currentLeetCodeId);
-      allUsernames = [currentLeetCodeId, ...allUsernames];
+    // If user is authenticated and has a LeetCode ID, add it to the list
+    if (user?.leetcodeId && !allUsernames.includes(user.leetcodeId)) {
+      allUsernames = [user.leetcodeId, ...allUsernames];
+    } else if (user?.leetcodeId && allUsernames.includes(user.leetcodeId)) {
+      // Move user's own ID to the front if it exists
+      allUsernames = allUsernames.filter((u) => u !== user.leetcodeId);
+      allUsernames = [user.leetcodeId, ...allUsernames];
     }
 
     setUsernames(allUsernames);
-  }, [trackedUsers, currentLeetCodeId]);
+  }, [trackedUsers, user?.leetcodeId]);
 
   const loadStats = useCallback(
     async (username, mode = filterMode) => {
@@ -264,7 +236,7 @@ export default function App() {
 
   function removeUser(username) {
     // Prevent removing user's own LeetCode ID
-    if (username === currentLeetCodeId) {
+    if (username === user?.leetcodeId) {
       setNotification({
         type: "warning",
         message: "You cannot remove your own LeetCode ID from tracking.",
@@ -327,6 +299,11 @@ export default function App() {
     });
   }
 
+  // Function to open profile setup modal
+  const openProfileSetup = () => {
+    setShowProfileSetupModal(true);
+  };
+
   // Function to toggle different right sidebar modes
   const toggleRightSidebar = (mode) => {
     if (rightSidebarOpen && rightSidebarMode === mode) {
@@ -345,6 +322,7 @@ export default function App() {
       <LeftSidebar
         isOpen={leftSidebarOpen}
         onToggle={() => setLeftSidebarOpen(!leftSidebarOpen)}
+        onOpenProfileSetup={openProfileSetup}
       />
 
       {/* Right Sidebar */}
@@ -358,7 +336,7 @@ export default function App() {
         usernames={usernames}
         statsMap={statsMap}
         refreshTrigger={refreshTrigger}
-        userLeetcodeId={currentLeetCodeId}
+        onOpenProfileSetup={openProfileSetup}
       />
 
       {/* Main Content */}
@@ -512,8 +490,8 @@ export default function App() {
             {usernames
               .sort((a, b) => {
                 // Always put user's own ID first
-                if (a === currentLeetCodeId) return -1;
-                if (b === currentLeetCodeId) return 1;
+                if (a === user?.leetcodeId) return -1;
+                if (b === user?.leetcodeId) return 1;
 
                 const statsA = statsMap[a] || {};
                 const statsB = statsMap[b] || {};
@@ -536,8 +514,8 @@ export default function App() {
                   hasError={errorUsers.has(username)}
                   onRetry={() => retryUser(username)}
                   filterMode={filterMode}
-                  isOwnCard={username === currentLeetCodeId}
-                  showRemoveButton={username !== currentLeetCodeId}
+                  isOwnCard={username === user?.leetcodeId}
+                  showRemoveButton={username !== user?.leetcodeId}
                 />
               ))}
           </div>
@@ -552,6 +530,12 @@ export default function App() {
           onClose={() => setNotification(null)}
         />
       )}
+
+      {/* Profile Setup Modal */}
+      <ProfileSetupModal
+        isOpen={showProfileSetupModal}
+        onClose={() => setShowProfileSetupModal(false)}
+      />
     </div>
   );
 }

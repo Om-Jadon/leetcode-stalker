@@ -60,3 +60,29 @@ export default function LoadingSkeleton() {
     </div>
   );
 }
+
+// Specialized loading components for different sections
+export const ProfileSkeleton = () => (
+  <div className="text-center space-y-3">
+    <div className="w-10 h-10 bg-neutral-700 rounded-full animate-pulse mx-auto"></div>
+    <div className="space-y-2">
+      <div className="h-4 bg-neutral-700 rounded animate-pulse"></div>
+      <div className="h-3 bg-neutral-700 rounded w-3/4 mx-auto animate-pulse"></div>
+    </div>
+  </div>
+);
+
+export const SidebarSkeleton = () => (
+  <div className="bg-neutral-800/50 backdrop-blur-sm p-4 rounded-lg border border-neutral-700">
+    <div className="space-y-3">
+      <div className="h-4 bg-neutral-700 rounded animate-pulse w-1/3"></div>
+      <div className="h-8 bg-neutral-700 rounded animate-pulse"></div>
+    </div>
+  </div>
+);
+
+export const LargeSpinnerSkeleton = () => (
+  <div className="flex items-center justify-center py-8">
+    <div className="w-12 h-12 border-4 border-neutral-700 border-t-amber-500 rounded-full animate-spin"></div>
+  </div>
+);
