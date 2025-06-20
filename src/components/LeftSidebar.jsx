@@ -240,7 +240,7 @@ export default function LeftSidebar({ isOpen, onToggle }) {
     return (
       <button
         onClick={onToggle}
-        className="fixed left-4 top-4 z-40 p-2 bg-gray-800 rounded-lg border border-gray-700 hover:bg-gray-700 transition-colors cursor-pointer"
+        className="fixed left-4 top-4 z-40 p-2 bg-neutral-800 rounded-lg border border-neutral-700 hover:bg-neutral-700 transition-colors cursor-pointer"
       >
         <svg
           className="w-5 h-5 text-white"
@@ -252,7 +252,7 @@ export default function LeftSidebar({ isOpen, onToggle }) {
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
-            d="M4 6h16M4 12h16M4 18h16"
+            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
           />
         </svg>
       </button>
@@ -271,7 +271,7 @@ export default function LeftSidebar({ isOpen, onToggle }) {
 
       {/* Sidebar */}
       <div
-        className={`fixed left-0 top-0 h-full bg-gray-900 border-r border-gray-700 z-40 flex flex-col transition-transform duration-300 ease-in-out ${
+        className={`fixed left-0 top-0 h-full bg-neutral-900 border-r border-neutral-700 z-40 flex flex-col transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } ${
           /* Responsive width */
@@ -318,7 +318,7 @@ export default function LeftSidebar({ isOpen, onToggle }) {
               </p>
               <button
                 onClick={signInWithGoogle}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors cursor-pointer"
+                className="bg-amber-600 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition-colors cursor-pointer"
               >
                 Sign in with Google
               </button>
@@ -330,7 +330,7 @@ export default function LeftSidebar({ isOpen, onToggle }) {
             <div className="p-2">
               <button
                 onClick={() => setActiveTab("friends")}
-                className="text-indigo-400 hover:text-indigo-300 text-sm flex items-center gap-1 cursor-pointer"
+                className="text-amber-400 hover:text-amber-300 text-sm flex items-center gap-1 cursor-pointer"
               >
                 <svg
                   className="w-4 h-4"
@@ -394,11 +394,11 @@ export default function LeftSidebar({ isOpen, onToggle }) {
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && sendMessage()}
                   placeholder="Type a message..."
-                  className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="flex-1 px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
                 <button
                   onClick={sendMessage}
-                  className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors cursor-pointer"
+                  className="px-3 py-2 bg-amber-600 hover:bg-orange-600 text-white rounded-lg transition-colors cursor-pointer"
                 >
                   <svg
                     className="w-4 h-4"
@@ -421,14 +421,14 @@ export default function LeftSidebar({ isOpen, onToggle }) {
           // Friends/Search View
           <div className="flex-1 flex flex-col">
             {/* Tab Navigation */}
-            <div className="p-3 md:p-4 border-b border-gray-700">
-              <div className="flex space-x-1 bg-gray-800 rounded-lg p-1">
+            <div className="p-3 md:p-4 border-b border-neutral-700">
+              <div className="flex space-x-1 bg-neutral-800 rounded-lg p-1">
                 <button
                   onClick={() => setActiveTab("friends")}
                   className={`flex-1 px-2 md:px-3 py-2 text-xs md:text-sm rounded-md transition-colors focus-ring touch-target cursor-pointer ${
                     activeTab === "friends"
-                      ? "bg-indigo-600 text-white shadow-glow"
-                      : "text-gray-400 hover:text-white hover:bg-gray-700"
+                      ? "bg-amber-600 text-white shadow-glow"
+                      : "text-neutral-400 hover:text-white hover:bg-neutral-700"
                   }`}
                 >
                   Friends
@@ -437,8 +437,8 @@ export default function LeftSidebar({ isOpen, onToggle }) {
                   onClick={() => setActiveTab("search")}
                   className={`flex-1 px-2 md:px-3 py-2 text-xs md:text-sm rounded-md transition-colors focus-ring touch-target cursor-pointer ${
                     activeTab === "search"
-                      ? "bg-indigo-600 text-white shadow-glow"
-                      : "text-gray-400 hover:text-white hover:bg-gray-700"
+                      ? "bg-amber-600 text-white shadow-glow"
+                      : "text-neutral-400 hover:text-white hover:bg-neutral-700"
                   }`}
                 >
                   Search
@@ -447,8 +447,8 @@ export default function LeftSidebar({ isOpen, onToggle }) {
                   onClick={() => setActiveTab("requests")}
                   className={`flex-1 px-2 md:px-3 py-2 text-xs md:text-sm rounded-md transition-colors relative focus-ring touch-target cursor-pointer ${
                     activeTab === "requests"
-                      ? "bg-indigo-600 text-white shadow-glow"
-                      : "text-gray-400 hover:text-white hover:bg-gray-700"
+                      ? "bg-amber-600 text-white shadow-glow"
+                      : "text-neutral-400 hover:text-white hover:bg-neutral-700"
                   }`}
                 >
                   <span className="hidden sm:inline">Requests</span>
@@ -482,12 +482,12 @@ export default function LeftSidebar({ isOpen, onToggle }) {
                           setTimeout(() => setShowSuggestions(false), 150)
                         }
                         placeholder="Search by username..."
-                        className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="flex-1 px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
                       />
                       <button
                         onClick={handleSearch}
                         disabled={isSearching}
-                        className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 text-white rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+                        className="px-3 py-2 bg-amber-600 hover:bg-orange-600 disabled:bg-neutral-600 text-white rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
                       >
                         {isSearching ? "..." : "Search"}
                       </button>
@@ -495,12 +495,12 @@ export default function LeftSidebar({ isOpen, onToggle }) {
 
                     {/* Suggestions Dropdown */}
                     {showSuggestions && suggestions.length > 0 && (
-                      <div className="absolute top-full left-0 right-14 z-50 mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      <div className="absolute top-full left-0 right-14 z-50 mt-1 bg-neutral-800 border border-neutral-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                         {suggestions.map((suggestion) => (
                           <div
                             key={suggestion.id}
                             onClick={() => selectSuggestion(suggestion)}
-                            className="p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-b-0"
+                            className="p-3 hover:bg-neutral-700 cursor-pointer border-b border-neutral-700 last:border-b-0"
                           >
                             <div className="text-white text-sm">
                               {suggestion.username}
@@ -543,7 +543,7 @@ export default function LeftSidebar({ isOpen, onToggle }) {
                       </div>
                       <button
                         onClick={() => sendFriendRequest(result.id)}
-                        className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors cursor-pointer"
+                        className="px-3 py-1 bg-amber-600 hover:bg-orange-600 text-white text-sm rounded transition-colors cursor-pointer"
                       >
                         Send Request
                       </button>
@@ -555,14 +555,14 @@ export default function LeftSidebar({ isOpen, onToggle }) {
               {activeTab === "requests" && (
                 <div className="p-4">
                   {friendRequests.length === 0 ? (
-                    <p className="text-gray-400 text-center">
+                    <p className="text-neutral-400 text-center">
                       No pending requests
                     </p>
                   ) : (
                     friendRequests.map((request) => (
                       <div
                         key={request.id}
-                        className="p-3 bg-gray-800 rounded-lg mb-2"
+                        className="p-3 bg-neutral-800 rounded-lg mb-2"
                       >
                         <div className="mb-2">
                           <p className="text-white">
@@ -583,7 +583,7 @@ export default function LeftSidebar({ isOpen, onToggle }) {
                                 "accept"
                               )
                             }
-                            className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors cursor-pointer"
+                            className="px-3 py-1 bg-amber-600 hover:bg-orange-600 text-white text-sm rounded transition-colors cursor-pointer"
                           >
                             Accept
                           </button>
@@ -609,26 +609,28 @@ export default function LeftSidebar({ isOpen, onToggle }) {
               {activeTab === "friends" && (
                 <div className="p-4">
                   {friends.length === 0 ? (
-                    <p className="text-gray-400 text-center">No friends yet</p>
+                    <p className="text-neutral-400 text-center">
+                      No friends yet
+                    </p>
                   ) : (
                     friends.map((friend) => (
                       <div
                         key={friend.id}
                         onClick={() => openChat(friend)}
-                        className="p-3 bg-gray-800 hover:bg-gray-700 rounded-lg mb-2 cursor-pointer transition-colors flex items-center justify-between"
+                        className="p-3 bg-neutral-800 hover:bg-neutral-700 rounded-lg mb-2 cursor-pointer transition-colors flex items-center justify-between"
                       >
                         <div>
                           <span className="text-white block">
                             {friend.username}
                           </span>
                           {friend.leetcodeId && (
-                            <span className="text-gray-400 text-sm">
+                            <span className="text-neutral-400 text-sm">
                               LeetCode: {friend.leetcodeId}
                             </span>
                           )}
                         </div>
                         <svg
-                          className="w-4 h-4 text-gray-400"
+                          className="w-4 h-4 text-neutral-400"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"

@@ -9,8 +9,8 @@ export default function UserProfile() {
   if (loading) {
     return (
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 bg-gray-700 rounded-full animate-pulse"></div>
-        <div className="w-16 h-4 bg-gray-700 rounded animate-pulse"></div>
+        <div className="w-8 h-8 bg-neutral-700 rounded-full animate-pulse"></div>
+        <div className="w-16 h-4 bg-neutral-700 rounded animate-pulse"></div>
       </div>
     );
   }
@@ -37,10 +37,10 @@ export default function UserProfile() {
     <div className="relative">
       <button
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-700/50 transition-colors cursor-pointer"
+        className="flex items-center gap-2 p-2 rounded-lg hover:bg-neutral-700/50 transition-colors cursor-pointer"
       >
         {/* User Avatar */}
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-sm font-semibold">
           {!user ? (
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path
@@ -66,13 +66,13 @@ export default function UserProfile() {
             {!user ? "Guest User" : user?.displayName || user?.email || "User"}
           </div>
           {!user && (
-            <div className="text-xs text-gray-400">Click to sign in</div>
+            <div className="text-xs text-neutral-400">Click to sign in</div>
           )}
         </div>
 
         {/* Dropdown Arrow */}
         <svg
-          className={`w-4 h-4 text-gray-400 transition-transform ${
+          className={`w-4 h-4 text-neutral-400 transition-transform ${
             isDropdownOpen ? "rotate-180" : ""
           }`}
           fill="none"
@@ -90,8 +90,8 @@ export default function UserProfile() {
 
       {/* Dropdown Menu */}
       {isDropdownOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50">
-          <div className="p-4 border-b border-gray-700">
+        <div className="absolute right-0 mt-2 w-64 bg-neutral-800 rounded-lg shadow-xl border border-neutral-700 z-50">
+          <div className="p-4 border-b border-neutral-700">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold">
                 {!user ? (
@@ -132,7 +132,7 @@ export default function UserProfile() {
               <>
                 <button
                   onClick={handleSignIn}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-sm text-white hover:bg-gray-700 rounded-lg transition-colors cursor-pointer"
+                  className="w-full flex items-center gap-3 px-3 py-2 text-sm text-white hover:bg-neutral-700 rounded-lg transition-colors cursor-pointer"
                 >
                   <svg
                     className="w-5 h-5 text-red-400"

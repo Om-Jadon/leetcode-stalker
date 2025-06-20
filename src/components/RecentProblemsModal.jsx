@@ -41,10 +41,10 @@ const getDifficultyColors = (difficulty) => {
       };
     default:
       return {
-        bg: "bg-gray-700",
-        border: "border-gray-600",
-        text: "text-gray-300",
-        badge: "bg-gray-600 text-gray-300",
+        bg: "bg-neutral-700",
+        border: "border-neutral-600",
+        text: "text-neutral-300",
+        badge: "bg-neutral-600 text-neutral-300",
       };
   }
 };
@@ -75,7 +75,7 @@ export default function RecentProblemsModal({
       >
         <div className="text-center py-8">
           <svg
-            className="mx-auto h-12 w-12 text-gray-400"
+            className="mx-auto h-12 w-12 text-neutral-400"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -90,7 +90,7 @@ export default function RecentProblemsModal({
           <h3 className="mt-2 text-sm font-medium text-gray-300">
             No recent problems
           </h3>
-          <p className="mt-1 text-sm text-gray-400">{getEmptyStateText()}</p>
+          <p className="mt-1 text-sm text-neutral-400">{getEmptyStateText()}</p>
         </div>
       </Modal>
     );

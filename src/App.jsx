@@ -19,6 +19,7 @@ export default function App() {
   // UI State
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
+  const [rightSidebarMode, setRightSidebarMode] = useState("profile"); // "profile", "recent-solves", "qotd"
 
   // User's own LeetCode ID from localStorage (for guest users)
   const [userLeetcodeId, setUserLeetcodeId] = useState(
@@ -326,8 +327,20 @@ export default function App() {
     });
   }
 
+  // Function to toggle different right sidebar modes
+  const toggleRightSidebar = (mode) => {
+    if (rightSidebarOpen && rightSidebarMode === mode) {
+      // If same mode is open, close the sidebar
+      setRightSidebarOpen(false);
+    } else {
+      // Open sidebar with new mode
+      setRightSidebarMode(mode);
+      setRightSidebarOpen(true);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-amber-900 to-neutral-900 relative overflow-x-hidden">
       {/* Left Sidebar */}
       <LeftSidebar
         isOpen={leftSidebarOpen}
@@ -337,7 +350,9 @@ export default function App() {
       {/* Right Sidebar */}
       <RightSidebar
         isOpen={rightSidebarOpen}
-        onToggle={() => setRightSidebarOpen(!rightSidebarOpen)}
+        mode={rightSidebarMode}
+        onToggle={(mode) => toggleRightSidebar(mode)}
+        onClose={() => setRightSidebarOpen(false)}
         filterMode={filterMode}
         onFilterModeChange={handleFilterModeChange}
         usernames={usernames}
@@ -352,12 +367,12 @@ export default function App() {
           leftSidebarOpen ? "md:ml-96" : "ml-0"
         } ${rightSidebarOpen ? "md:mr-96" : "mr-0"} p-4 md:p-6 lg:p-8`}
       >
-        {/* Mobile sidebar toggles */}
+        {/* Mobile sidebar toggle for left sidebar only */}
         <div className="flex justify-between items-center md:hidden mb-4">
           <button
             onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-            className="p-2 bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-700 hover:bg-gray-700/50 transition-colors touch-target focus-ring cursor-pointer"
-            aria-label="Toggle friends sidebar"
+            className="p-2 bg-neutral-800/50 backdrop-blur-sm rounded-lg border border-neutral-700 hover:bg-neutral-700/50 transition-colors touch-target focus-ring cursor-pointer"
+            aria-label="Toggle chat sidebar"
           >
             <svg
               className="w-5 h-5 text-white"
@@ -369,27 +384,7 @@ export default function App() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
-          </button>
-
-          <button
-            onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
-            className="p-2 bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-700 hover:bg-gray-700/50 transition-colors touch-target focus-ring cursor-pointer"
-            aria-label="Toggle profile sidebar"
-          >
-            <svg
-              className="w-5 h-5 text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
               />
             </svg>
           </button>
@@ -400,7 +395,7 @@ export default function App() {
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold gradient-text mb-2">
             LeetCode Stalker
           </h1>
-          <p className="text-base md:text-lg text-gray-300 mb-6 lg:mb-8">
+          <p className="text-base md:text-lg text-neutral-300 mb-6 lg:mb-8">
             Stalk them up, Bring them down
           </p>
 
@@ -417,8 +412,8 @@ export default function App() {
               disabled={isLoading || usernames.length === 0}
               className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors btn-hover-scale focus-ring touch-target min-w-[120px] ${
                 isLoading || usernames.length === 0
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-indigo-600 hover:bg-indigo-700 cursor-pointer"
+                  ? "bg-neutral-400 cursor-not-allowed"
+                  : "bg-amber-600 hover:bg-orange-600 cursor-pointer"
               } text-white font-medium px-4 py-2.5 rounded-lg shadow-md transition-all`}
               title={
                 timeUntilRefresh
@@ -481,7 +476,7 @@ export default function App() {
           <div className="text-center py-12 md:py-20 glass-morphism rounded-xl mx-2 md:mx-4">
             <div className="max-w-md mx-auto px-4">
               <svg
-                className="mx-auto h-10 w-10 md:h-12 md:w-12 text-gray-400 mb-4"
+                className="mx-auto h-10 w-10 md:h-12 md:w-12 text-neutral-400 mb-4"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -496,7 +491,7 @@ export default function App() {
               <h3 className="text-lg md:text-xl font-medium text-white mb-2">
                 No users tracked yet
               </h3>
-              <p className="text-gray-400 text-sm md:text-base">
+              <p className="text-neutral-400 text-sm md:text-base">
                 Add LeetCode usernames to track their progress
               </p>
               {!user && (

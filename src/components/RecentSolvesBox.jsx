@@ -40,10 +40,10 @@ const getDifficultyColors = (difficulty) => {
       };
     default:
       return {
-        bg: "bg-gray-700",
-        border: "border-gray-600",
-        text: "text-gray-300",
-        badge: "bg-gray-600 text-gray-300",
+        bg: "bg-neutral-700",
+        border: "border-neutral-600",
+        text: "text-neutral-300",
+        badge: "bg-neutral-600 text-neutral-300",
       };
   }
 };
@@ -91,12 +91,12 @@ export default function RecentSolvesBox({
       <div className="overflow-hidden">
         {/* Header */}
         <div
-          className="flex items-center justify-between p-3 border-b border-gray-700 cursor-pointer hover:bg-gray-700/50 transition-colors"
+          className="flex items-center justify-between p-3 border-b border-neutral-700 cursor-pointer hover:bg-neutral-700/50 transition-colors"
           onClick={() => setIsCollapsed(!isCollapsed)}
         >
           <div className="flex items-center gap-2">
             <svg
-              className="h-4 w-4 text-indigo-400"
+              className="h-4 w-4 text-amber-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -138,7 +138,7 @@ export default function RecentSolvesBox({
             {isLoading ? (
               <div className="flex items-center justify-center py-4">
                 <svg
-                  className="animate-spin h-4 w-4 text-indigo-400"
+                  className="animate-spin h-4 w-4 text-amber-400"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -204,15 +204,15 @@ export default function RecentSolvesBox({
       className="hidden sm:block fixed top-4 right-4 z-40 w-80 max-w-[calc(100vw-2rem)] sm:w-96 lg:w-80 xl:w-96 
                     sm:top-4 sm:right-4"
     >
-      <div className="bg-gray-800/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-700 overflow-hidden">
+      <div className="bg-neutral-800/95 backdrop-blur-sm rounded-xl shadow-xl border border-neutral-700 overflow-hidden">
         {/* Header */}
         <div
-          className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-700 cursor-pointer hover:bg-gray-700/50 transition-colors"
+          className="flex items-center justify-between p-3 sm:p-4 border-b border-neutral-700 cursor-pointer hover:bg-neutral-700/50 transition-colors"
           onClick={() => setIsCollapsed(!isCollapsed)}
         >
           <div className="flex items-center gap-2">
             <svg
-              className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-400"
+              className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -256,7 +256,7 @@ export default function RecentSolvesBox({
             {isLoading ? (
               <div className="flex items-center justify-center py-4">
                 <svg
-                  className="animate-spin h-5 w-5 text-indigo-400"
+                  className="animate-spin h-5 w-5 text-amber-400"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -316,7 +316,7 @@ export default function RecentSolvesBox({
                               href={`https://leetcode.com/${problem.username}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-indigo-400 hover:text-indigo-300 font-medium truncate max-w-[100px] sm:max-w-none"
+                              className="text-amber-400 hover:text-orange-300 font-medium truncate max-w-[100px] sm:max-w-none"
                               onClick={(e) => e.stopPropagation()}
                             >
                               {problem.username}

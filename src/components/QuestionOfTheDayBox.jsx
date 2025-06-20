@@ -31,10 +31,10 @@ const getDifficultyColors = (difficulty) => {
       };
     default:
       return {
-        bg: "bg-gray-700",
-        border: "border-gray-600",
-        text: "text-gray-300",
-        badge: "bg-gray-600 text-gray-300",
+        bg: "bg-neutral-700",
+        border: "border-neutral-600",
+        text: "text-neutral-300",
+        badge: "bg-neutral-600 text-neutral-300",
       };
   }
 };
@@ -116,12 +116,12 @@ export default function QuestionOfTheDayBox({
       <div className="overflow-hidden">
         {/* Header */}
         <div
-          className="flex items-center justify-between p-3 border-b border-gray-700 cursor-pointer hover:bg-gray-700/50 transition-colors"
+          className="flex items-center justify-between p-3 border-b border-neutral-700 cursor-pointer hover:bg-neutral-700/50 transition-colors"
           onClick={() => setIsCollapsed(!isCollapsed)}
         >
           <div className="flex items-center gap-2">
             <svg
-              className="h-4 w-4 text-orange-400"
+              className="h-4 w-4 text-amber-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -138,7 +138,7 @@ export default function QuestionOfTheDayBox({
             </h3>
           </div>
           <button
-            className="p-1 rounded-full hover:bg-gray-600 transition-colors text-gray-400 hover:text-white"
+            className="p-1 rounded-full hover:bg-neutral-600 transition-colors text-neutral-400 hover:text-white"
             aria-label={isCollapsed ? "Expand" : "Collapse"}
           >
             <svg
@@ -165,7 +165,7 @@ export default function QuestionOfTheDayBox({
             {isLoading ? (
               <div className="flex items-center justify-center py-4">
                 <svg
-                  className="animate-spin h-4 w-4 text-orange-400"
+                  className="animate-spin h-4 w-4 text-amber-400"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -190,7 +190,7 @@ export default function QuestionOfTheDayBox({
                 <p className="text-red-400 text-xs mb-2">Failed to load</p>
                 <button
                   onClick={() => window.location.reload()}
-                  className="text-indigo-400 hover:text-indigo-300 text-xs underline cursor-pointer"
+                  className="text-amber-400 hover:text-orange-300 text-xs underline cursor-pointer"
                 >
                   Retry
                 </button>
@@ -223,7 +223,7 @@ export default function QuestionOfTheDayBox({
                     href={`https://leetcode.com/problems/${dailyChallenge.question.titleSlug}/`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-indigo-400 hover:text-indigo-300 text-xs transition-colors"
+                    className="inline-flex items-center gap-1 text-amber-400 hover:text-orange-300 text-xs transition-colors"
                   >
                     <span>Solve Problem</span>
                     <svg
@@ -245,7 +245,7 @@ export default function QuestionOfTheDayBox({
                 {/* User solve status */}
                 {usernames.length > 0 && (
                   <div>
-                    <h5 className="text-gray-300 text-xs font-medium mb-2">
+                    <h5 className="text-neutral-300 text-xs font-medium mb-2">
                       Solve Status
                     </h5>
                     <div className="space-y-1">
@@ -254,12 +254,12 @@ export default function QuestionOfTheDayBox({
                           key={username}
                           className="flex items-center justify-between text-xs"
                         >
-                          <span className="text-gray-300">{username}</span>
+                          <span className="text-neutral-300">{username}</span>
                           <span
                             className={`px-1.5 py-0.5 rounded text-xs font-medium ${
                               userSolveStatus[username]
                                 ? "bg-green-800 text-green-200"
-                                : "bg-gray-700 text-gray-300"
+                                : "bg-neutral-700 text-neutral-300"
                             }`}
                           >
                             {userSolveStatus[username]
@@ -273,7 +273,7 @@ export default function QuestionOfTheDayBox({
                 )}
               </div>
             ) : (
-              <p className="text-gray-400 text-xs text-center py-4">
+              <p className="text-neutral-400 text-xs text-center py-4">
                 No daily challenge available
               </p>
             )}
@@ -289,15 +289,15 @@ export default function QuestionOfTheDayBox({
       className="hidden sm:block fixed top-4 left-4 z-40 w-80 max-w-[calc(100vw-2rem)] sm:w-96 lg:w-80 xl:w-96 
                     sm:top-4 sm:left-4"
     >
-      <div className="bg-gray-800/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-700 overflow-hidden">
+      <div className="bg-neutral-800/95 backdrop-blur-sm rounded-xl shadow-xl border border-neutral-700 overflow-hidden">
         {/* Header */}
         <div
-          className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-700 cursor-pointer hover:bg-gray-700/50 transition-colors"
+          className="flex items-center justify-between p-3 sm:p-4 border-b border-neutral-700 cursor-pointer hover:bg-neutral-700/50 transition-colors"
           onClick={() => setIsCollapsed(!isCollapsed)}
         >
           <div className="flex items-center gap-2">
             <svg
-              className="h-4 w-4 sm:h-5 sm:w-5 text-orange-400"
+              className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -314,7 +314,7 @@ export default function QuestionOfTheDayBox({
             </h3>
           </div>
           <button
-            className="p-1 rounded-full hover:bg-gray-600 transition-colors text-gray-400 hover:text-white"
+            className="p-1 rounded-full hover:bg-neutral-600 transition-colors text-neutral-400 hover:text-white"
             aria-label={isCollapsed ? "Expand" : "Collapse"}
           >
             <svg
@@ -341,7 +341,7 @@ export default function QuestionOfTheDayBox({
             {isLoading ? (
               <div className="flex items-center justify-center py-4">
                 <svg
-                  className="animate-spin h-5 w-5 text-orange-400"
+                  className="animate-spin h-5 w-5 text-amber-400"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
