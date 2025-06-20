@@ -260,19 +260,52 @@ export default function LeftSidebar({
     }
   };
 
-  const sendMessage = async () => {
-    if (!newMessage.trim() || !selectedFriend || !user) return;
+  const sendMessage = async (messageType = "text", content = null) => {
+    const messageContent = content || newMessage.trim();
+    if (!messageContent || !selectedFriend || !user) return;
 
-    const messageText = newMessage.trim();
-    setNewMessage(""); // Clear input immediately
+    if (!content) setNewMessage(""); // Clear input only if not using quick action
 
     try {
-      console.log("Sending message:", messageText);
-      await chatService.sendMessage(user.uid, selectedFriend.id, messageText);
+      console.log("Sending message:", messageContent, "Type:", messageType);
+      await chatService.sendMessage(
+        user.uid,
+        selectedFriend.id,
+        messageContent,
+        messageType
+      );
       console.log("Message sent successfully");
     } catch (error) {
       console.error("Error sending message:", error);
-      setNewMessage(messageText); // Restore message if sending failed
+      if (!content) setNewMessage(messageContent); // Restore message if sending failed
+    }
+  };
+
+  // Quick action functions
+  const sendQuickMessage = (message) => {
+    sendMessage("text", message);
+  };
+
+  const shareProblem = () => {
+    const input = prompt("Enter LeetCode problem URL or number:");
+    if (!input) return;
+
+    let problemUrl = input.trim();
+
+    // If it's just a number, convert to LeetCode URL
+    if (/^\d+$/.test(problemUrl)) {
+      problemUrl = `https://leetcode.com/problems/${problemUrl}/`;
+    }
+
+    // If it doesn't contain leetcode.com, try to format it
+    if (!problemUrl.includes("leetcode.com") && problemUrl.length > 0) {
+      problemUrl = `https://leetcode.com/problems/${problemUrl}/`;
+    }
+
+    if (problemUrl.includes("leetcode.com")) {
+      sendMessage("problem", problemUrl);
+    } else {
+      alert("Please enter a valid LeetCode problem URL or number");
     }
   };
 
@@ -288,6 +321,71 @@ export default function LeftSidebar({
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  // Render different message types
+  const renderMessage = (msg) => {
+    const isFromMe = msg.fromUserId === user?.uid;
+    const timestamp =
+      typeof msg.timestamp === "number" ? msg.timestamp : Date.now();
+
+    const baseClasses = `max-w-xs lg:max-w-sm px-3 py-2 rounded-lg ${
+      isFromMe ? "bg-amber-600 text-white" : "bg-neutral-700 text-neutral-100"
+    }`;
+
+    const content = (() => {
+      switch (msg.messageType) {
+        case "problem":
+          if (msg.message.includes("leetcode.com")) {
+            // Extract problem title from URL
+            const urlParts = msg.message.split("/problems/");
+            let problemTitle = "LeetCode Problem";
+
+            if (urlParts.length > 1) {
+              const problemSlug = urlParts[1].split("/")[0];
+              problemTitle = problemSlug
+                .split("-")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ");
+            }
+
+            return (
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm">🧩</span>
+                  <span className="text-xs font-medium bg-blue-500/20 px-2 py-1 rounded">
+                    Problem Shared
+                  </span>
+                </div>
+                <a
+                  href={msg.message}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm underline hover:no-underline block mb-1 font-medium"
+                >
+                  {problemTitle}
+                </a>
+                <p className="text-xs opacity-80">Click to open in LeetCode</p>
+              </div>
+            );
+          }
+          break;
+        default:
+          return <p className="text-sm">{msg.message}</p>;
+      }
+    })();
+
+    return (
+      <div
+        key={msg.id}
+        className={`flex ${isFromMe ? "justify-end" : "justify-start"}`}
+      >
+        <div className={baseClasses}>
+          {content}
+          <p className="text-xs opacity-70 mt-2">{formatTime(timestamp)}</p>
+        </div>
+      </div>
+    );
   };
 
   const goBackToFriends = () => {
@@ -426,11 +524,11 @@ export default function LeftSidebar({
         ) : activeTab === "chat" && selectedFriend ? (
           // Chat View
           <div className="flex-1 flex flex-col min-h-0">
-            {/* Back button */}
+            {/* Back button and friend info */}
             <div className="p-3 border-b border-neutral-700">
               <button
                 onClick={goBackToFriends}
-                className="text-amber-400 hover:text-amber-300 text-sm flex items-center gap-2 cursor-pointer"
+                className="text-amber-400 hover:text-amber-300 text-sm flex items-center gap-2 cursor-pointer mb-2"
               >
                 <svg
                   className="w-4 h-4"
@@ -447,6 +545,11 @@ export default function LeftSidebar({
                 </svg>
                 Back to friends
               </button>
+              {selectedFriend.leetcodeId && (
+                <div className="text-xs text-neutral-400 pl-6">
+                  LeetCode: {selectedFriend.leetcodeId}
+                </div>
+              )}
             </div>
 
             {/* Messages */}
@@ -460,37 +563,69 @@ export default function LeftSidebar({
                   <p>No messages yet. Start the conversation!</p>
                 </div>
               ) : (
-                chatMessages.map((msg) => {
-                  const isFromMe = msg.fromUserId === user?.uid;
-                  const timestamp =
-                    typeof msg.timestamp === "number"
-                      ? msg.timestamp
-                      : Date.now();
-
-                  return (
-                    <div
-                      key={msg.id}
-                      className={`flex ${
-                        isFromMe ? "justify-end" : "justify-start"
-                      }`}
-                    >
-                      <div
-                        className={`max-w-xs lg:max-w-sm px-3 py-2 rounded-lg ${
-                          isFromMe
-                            ? "bg-amber-600 text-white"
-                            : "bg-neutral-700 text-neutral-100"
-                        }`}
-                      >
-                        <p className="text-sm">{msg.message}</p>
-                        <p className="text-xs opacity-70 mt-1">
-                          {formatTime(timestamp)}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })
+                chatMessages.map((msg) => renderMessage(msg))
               )}
               <div ref={chatMessagesEndRef} />
+            </div>
+
+            {/* Quick Actions */}
+            <div className="px-4 py-2 border-t border-neutral-700">
+              <div className="flex gap-2 text-xs">
+                <button
+                  onClick={shareProblem}
+                  className="flex items-center gap-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                >
+                  <span>🧩</span>
+                  <span>Problem</span>
+                </button>
+                <button
+                  onClick={() =>
+                    sendQuickMessage("Good luck with your coding! 💪")
+                  }
+                  className="flex items-center gap-1 px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded transition-colors"
+                >
+                  <span>💪</span>
+                  <span>Motivate</span>
+                </button>
+              </div>
+              <div className="flex gap-2 text-xs mt-2">
+                <button
+                  onClick={() =>
+                    sendQuickMessage(
+                      "Want to do a daily challenge together? 🤝"
+                    )
+                  }
+                  className="flex items-center gap-1 px-2 py-1 bg-neutral-600 hover:bg-neutral-500 text-white rounded transition-colors text-xs"
+                >
+                  Daily?
+                </button>
+                <button
+                  onClick={() =>
+                    sendQuickMessage("Stuck on a problem? Need help? 🤔")
+                  }
+                  className="flex items-center gap-1 px-2 py-1 bg-neutral-600 hover:bg-neutral-500 text-white rounded transition-colors text-xs"
+                >
+                  Help?
+                </button>
+                <button
+                  onClick={() =>
+                    sendQuickMessage("Great job on your recent solves! 👏")
+                  }
+                  className="flex items-center gap-1 px-2 py-1 bg-neutral-600 hover:bg-neutral-500 text-white rounded transition-colors text-xs"
+                >
+                  Congrats!
+                </button>
+                <button
+                  onClick={() =>
+                    sendQuickMessage(
+                      "Check out my latest progress on LeetCode! 📊"
+                    )
+                  }
+                  className="flex items-center gap-1 px-2 py-1 bg-neutral-600 hover:bg-neutral-500 text-white rounded transition-colors text-xs"
+                >
+                  My Stats
+                </button>
+              </div>
             </div>
 
             {/* Message input */}

@@ -374,8 +374,8 @@ export const friendRequestsService = {
 
 // Chat management
 export const chatService = {
-  // Send message
-  async sendMessage(fromUserId, toUserId, message) {
+  // Send message with type support
+  async sendMessage(fromUserId, toUserId, message, messageType = "text") {
     try {
       // Create chat ID (consistent ordering)
       const chatId = [fromUserId, toUserId].sort().join("_");
@@ -385,6 +385,7 @@ export const chatService = {
         fromUserId,
         toUserId,
         message,
+        messageType,
         timestamp: serverTimestamp(),
         read: false,
       });
