@@ -6,13 +6,13 @@ export default function ProfileSection({
   filterMode,
   onFilterModeChange,
   onOpenProfileSetup,
+  authLoading,
 }) {
   const {
     user,
     signOut,
     signInWithGoogle,
     hasCompleteProfile,
-    loading,
     updateLeetcodeId,
   } = useAuth();
 
@@ -52,7 +52,7 @@ export default function ProfileSection({
       {/* User Authentication Section */}
       <div className="bg-neutral-800/50 backdrop-blur-sm p-4 rounded-lg border border-neutral-700">
         <h3 className="text-sm font-medium text-neutral-300 mb-3">Account</h3>
-        {loading ? (
+        {authLoading ? (
           <ProfileSkeleton />
         ) : !user ? (
           <div className="text-center space-y-3">
@@ -157,7 +157,7 @@ export default function ProfileSection({
       </div>
 
       {/* LeetCode ID Manager */}
-      {loading ? (
+      {authLoading ? (
         <SidebarSkeleton />
       ) : (
         user &&

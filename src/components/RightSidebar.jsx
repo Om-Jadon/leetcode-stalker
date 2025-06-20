@@ -14,6 +14,7 @@ export default function RightSidebar({
   statsMap,
   refreshTrigger,
   onOpenProfileSetup,
+  authLoading,
 }) {
   // Function to get title based on mode
   const getTitle = () => {
@@ -54,6 +55,7 @@ export default function RightSidebar({
             filterMode={filterMode}
             onFilterModeChange={onFilterModeChange}
             onOpenProfileSetup={onOpenProfileSetup}
+            authLoading={authLoading}
           />
         );
     }

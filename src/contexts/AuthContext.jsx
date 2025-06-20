@@ -86,62 +86,15 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // Initialize auth on app start - only check for existing authenticated users
-  useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        setLoading(true);
-
-        // Check if user is already signed in with Google
-        const currentUser = authService.getCurrentUser();
-        if (currentUser && !currentUser.isAnonymous) {
-          // Only set authenticated users, sync their data
-          await syncUserData(currentUser.uid);
-
-          // Fetch user profile data from Firestore and merge with Firebase Auth user
-          try {
-            const userDoc = await userService.getUser(currentUser.uid);
-
-            if (userDoc && userDoc.username && userDoc.leetcodeId) {
-              // User has complete profile
-              const enhancedUser = {
-                ...currentUser,
-                username: userDoc.username,
-                leetcodeId: userDoc.leetcodeId,
-              };
-              setUser(enhancedUser);
-            } else {
-              // User only has Firebase auth, no profile yet
-              setUser(currentUser);
-            }
-          } catch (error) {
-            console.error("Error fetching user profile:", error);
-            setUser(currentUser);
-          }
-        } else {
-          // No authenticated user - user will be in guest mode
-          setUser(null);
-        }
-      } catch (error) {
-        console.error("Error initializing auth:", error);
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initializeAuth();
-  }, [syncUserData]);
-
-  // Listen to auth state changes for authenticated users only
+  // Listen to auth state changes - this handles all auth initialization
   useEffect(() => {
     const unsubscribe = authService.onAuthStateChanged(async (firebaseUser) => {
-      if (firebaseUser && !firebaseUser.isAnonymous) {
-        // Only handle authenticated users, sync their data
-        await syncUserData(firebaseUser.uid);
+      try {
+        if (firebaseUser && !firebaseUser.isAnonymous) {
+          // Only handle authenticated users, sync their data
+          await syncUserData(firebaseUser.uid);
 
-        // Fetch user profile data from Firestore and merge with Firebase Auth user
-        try {
+          // Fetch user profile data from Firestore and merge with Firebase Auth user
           const userDoc = await userService.getUser(firebaseUser.uid);
 
           if (userDoc && userDoc.username && userDoc.leetcodeId) {
@@ -156,36 +109,31 @@ export const AuthProvider = ({ children }) => {
             // User only has Firebase auth, no profile yet
             setUser(firebaseUser);
           }
-        } catch (error) {
-          console.error("Error fetching user profile:", error);
-          setUser(firebaseUser);
+        } else {
+          // No authenticated user
+          setUser(null);
         }
-      } else {
-        // No authenticated user
-        setUser(null);
+      } catch (error) {
+        console.error("Error in auth state change:", error);
+        setUser(firebaseUser || null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return unsubscribe;
   }, [syncUserData]);
 
-  // Sign in with Google - only creates Firebase auth user, doesn't create profile
+  // Sign in with Google - only triggers auth, let auth state change handle the rest
   const signInWithGoogle = async () => {
     try {
       setLoading(true);
       const firebaseUser = await authService.signInWithGoogle();
-
-      // Sync data between localStorage and Firestore
-      await syncUserData(firebaseUser.uid);
-
-      // Set the Firebase user object in state (no profile data yet)
-      setUser(firebaseUser);
-
+      // Don't set user here - let the auth state change listener handle it
       return firebaseUser;
     } catch (error) {
       console.error("Error signing in with Google:", error);
-      setLoading(false);
+      setLoading(false); // Only set loading false on error
       throw error;
     }
   };

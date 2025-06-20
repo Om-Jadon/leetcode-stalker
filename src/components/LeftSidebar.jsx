@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { LargeSpinnerSkeleton } from "./LoadingSkeleton";
 import {
@@ -8,9 +8,14 @@ import {
   userService,
 } from "../firebase/firestore";
 
-export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
-  const { user, signInWithGoogle, loading, hasCompleteProfile } = useAuth();
-  const [activeTab, setActiveTab] = useState("friends"); // 'friends', 'search', 'requests', 'chat'
+export default function LeftSidebar({
+  isOpen,
+  onToggle,
+  onOpenProfileSetup,
+  authLoading,
+}) {
+  const { user, signInWithGoogle, hasCompleteProfile } = useAuth();
+  const [activeTab, setActiveTab] = useState("friends");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
@@ -18,12 +23,23 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [friendRequests, setFriendRequests] = useState([]);
   const [friends, setFriends] = useState([]);
+
+  // Chat state
   const [selectedFriend, setSelectedFriend] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [chatUnsubscribe, setChatUnsubscribe] = useState(null);
+  const chatMessagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
 
-  // Load user's friends from Firebase (only for authenticated users)
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (chatMessagesEndRef.current && activeTab === "chat") {
+      chatMessagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [chatMessages, activeTab]);
+
+  // Load user's friends from Firebase
   const loadFriends = useCallback(async () => {
     if (!user) return;
     try {
@@ -43,6 +59,7 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
     }
   }, [user]);
 
+  // Load friend requests
   const loadFriendRequests = useCallback(async () => {
     if (!user) return;
     try {
@@ -65,6 +82,7 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
     }
   }, [user]);
 
+  // Load friends and requests when user changes
   useEffect(() => {
     if (user) {
       loadFriends();
@@ -72,7 +90,17 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
     }
   }, [user, loadFriends, loadFriendRequests]);
 
-  // Handle search input changes and provide suggestions
+  // Clean up chat subscription when component unmounts or user changes
+  useEffect(() => {
+    return () => {
+      if (chatUnsubscribe) {
+        console.log("Cleaning up chat subscription");
+        chatUnsubscribe();
+      }
+    };
+  }, [chatUnsubscribe]);
+
+  // Search functionality
   const handleSearchInputChange = async (value) => {
     setSearchQuery(value);
 
@@ -83,7 +111,6 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
           value.trim()
         );
 
-        // Filter out current user and existing friends
         const filteredSuggestions = suggestedUsers.filter(
           (u) => u.id !== user.uid && !friends.some((f) => f.id === u.id)
         );
@@ -112,7 +139,6 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
         searchQuery.trim()
       );
 
-      // Filter out current user and existing friends
       const filteredUsers = users.filter(
         (u) => u.id !== user.uid && !friends.some((f) => f.id === u.id)
       );
@@ -138,12 +164,9 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
       setSearchQuery("");
       setSuggestions([]);
       setShowSuggestions(false);
-
-      // You could add a success notification here if you have a notification system
       console.log("Friend request sent successfully!");
     } catch (error) {
       console.error("Error sending friend request:", error);
-      // You could add an error notification here
     }
   };
 
@@ -155,43 +178,74 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
           fromUserId,
           user.uid
         );
-        await loadFriends(); // Refresh friends list
+        await loadFriends();
       } else {
         await friendRequestsService.declineFriendRequest(requestId);
       }
-      await loadFriendRequests(); // Refresh requests list
+      await loadFriendRequests();
     } catch (error) {
       console.error(`Error ${action}ing friend request:`, error);
     }
   };
 
+  // Chat functionality
   const openChat = async (friend) => {
+    console.log("Opening chat with:", friend.username);
+
     // Clean up previous chat listener
     if (chatUnsubscribe) {
+      console.log("Cleaning up previous chat subscription");
       chatUnsubscribe();
       setChatUnsubscribe(null);
     }
 
     setSelectedFriend(friend);
     setActiveTab("chat");
+    setChatMessages([]); // Clear previous messages
 
     try {
       // Load initial messages
+      console.log("Loading initial messages...");
       const messages = await chatService.getChatMessages(user.uid, friend.id);
+      console.log("Initial messages loaded:", messages.length);
       setChatMessages(messages);
 
       // Mark messages as read
       await chatService.markMessagesAsRead(user.uid, friend.id, user.uid);
 
       // Set up real-time listener for new messages
+      console.log("Setting up real-time listener...");
       const unsubscribe = chatService.onChatMessages(
         user.uid,
         friend.id,
         (snapshot) => {
+          console.log("Real-time update received, processing...");
           const newMessages = [];
+
           snapshot.forEach((doc) => {
-            newMessages.push({ id: doc.id, ...doc.data() });
+            const data = doc.data();
+            let timestamp = data.timestamp;
+
+            // Handle different timestamp formats
+            if (timestamp?.seconds) {
+              timestamp = timestamp.seconds * 1000;
+            } else if (timestamp?.toMillis) {
+              timestamp = timestamp.toMillis();
+            } else if (!timestamp) {
+              timestamp = Date.now();
+            }
+
+            newMessages.push({
+              id: doc.id,
+              ...data,
+              timestamp,
+            });
           });
+
+          // Sort messages by timestamp
+          newMessages.sort((a, b) => a.timestamp - b.timestamp);
+
+          console.log("Setting new messages:", newMessages.length);
           setChatMessages(newMessages);
 
           // Auto-mark new messages as read
@@ -199,34 +253,33 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
         }
       );
 
-      setChatUnsubscribe(unsubscribe);
+      console.log("Real-time listener set up successfully");
+      setChatUnsubscribe(() => unsubscribe);
     } catch (error) {
-      console.error("Error loading chat messages:", error);
+      console.error("Error setting up chat:", error);
     }
   };
 
-  // Clean up chat listener when component unmounts or user changes
-  useEffect(() => {
-    return () => {
-      if (chatUnsubscribe) {
-        chatUnsubscribe();
-      }
-    };
-  }, [chatUnsubscribe]);
-
   const sendMessage = async () => {
-    if (!newMessage.trim() || !selectedFriend) return;
+    if (!newMessage.trim() || !selectedFriend || !user) return;
 
     const messageText = newMessage.trim();
     setNewMessage(""); // Clear input immediately
 
     try {
+      console.log("Sending message:", messageText);
       await chatService.sendMessage(user.uid, selectedFriend.id, messageText);
-      // Real-time listener will update the messages automatically
+      console.log("Message sent successfully");
     } catch (error) {
       console.error("Error sending message:", error);
-      // Restore message if sending failed
-      setNewMessage(messageText);
+      setNewMessage(messageText); // Restore message if sending failed
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
     }
   };
 
@@ -235,6 +288,18 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const goBackToFriends = () => {
+    // Clean up chat subscription when going back
+    if (chatUnsubscribe) {
+      console.log("Cleaning up chat subscription on back");
+      chatUnsubscribe();
+      setChatUnsubscribe(null);
+    }
+    setSelectedFriend(null);
+    setChatMessages([]);
+    setActiveTab("friends");
   };
 
   if (!isOpen) {
@@ -274,20 +339,13 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
       <div
         className={`fixed left-0 top-0 h-full bg-neutral-900 border-r border-neutral-700 z-40 flex flex-col transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
-        } ${
-          /* Responsive width */
-          "w-full max-w-sm md:w-96"
-        }`}
+        } w-full max-w-sm md:w-96`}
       >
         {/* Header */}
         <div className="p-4 border-b border-gray-700 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-white truncate">
-            {activeTab === "chat"
-              ? `Chat with ${
-                  selectedFriend?.leetcodeId ||
-                  selectedFriend?.username ||
-                  "Friend"
-                }`
+            {activeTab === "chat" && selectedFriend
+              ? `Chat with ${selectedFriend.username}`
               : "Friends"}
           </h2>
           <button
@@ -311,7 +369,8 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
           </button>
         </div>
 
-        {loading ? (
+        {/* Content */}
+        {authLoading ? (
           <div className="flex-1 flex items-center justify-center p-4">
             <div className="text-center space-y-4">
               <LargeSpinnerSkeleton />
@@ -364,13 +423,14 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
               </button>
             </div>
           </div>
-        ) : activeTab === "chat" ? (
+        ) : activeTab === "chat" && selectedFriend ? (
           // Chat View
-          <div className="flex-1 flex flex-col">
-            <div className="p-2">
+          <div className="flex-1 flex flex-col min-h-0">
+            {/* Back button */}
+            <div className="p-3 border-b border-neutral-700">
               <button
-                onClick={() => setActiveTab("friends")}
-                className="text-amber-400 hover:text-amber-300 text-sm flex items-center gap-1 cursor-pointer"
+                onClick={goBackToFriends}
+                className="text-amber-400 hover:text-amber-300 text-sm flex items-center gap-2 cursor-pointer"
               >
                 <svg
                   className="w-4 h-4"
@@ -389,56 +449,65 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {chatMessages.map((msg) => {
-                const isFromMe = msg.fromUserId === user?.uid;
-                // Safe timestamp handling
-                let timestamp;
-                if (msg.timestamp?.seconds) {
-                  timestamp = msg.timestamp.seconds * 1000;
-                } else if (msg.timestamp && typeof msg.timestamp === "number") {
-                  timestamp = msg.timestamp;
-                } else {
-                  timestamp = Date.now(); // Fallback to current time
-                }
+            {/* Messages */}
+            <div
+              ref={messagesContainerRef}
+              className="flex-1 p-4 space-y-3 overflow-y-auto min-h-0"
+              style={{ minHeight: "100px" }}
+            >
+              {chatMessages.length === 0 ? (
+                <div className="text-center text-neutral-400 mt-8">
+                  <p>No messages yet. Start the conversation!</p>
+                </div>
+              ) : (
+                chatMessages.map((msg) => {
+                  const isFromMe = msg.fromUserId === user?.uid;
+                  const timestamp =
+                    typeof msg.timestamp === "number"
+                      ? msg.timestamp
+                      : Date.now();
 
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex ${
-                      isFromMe ? "justify-end" : "justify-start"
-                    }`}
-                  >
+                  return (
                     <div
-                      className={`max-w-xs px-3 py-2 rounded-lg ${
-                        isFromMe
-                          ? "bg-indigo-600 text-white"
-                          : "bg-gray-700 text-gray-200"
+                      key={msg.id}
+                      className={`flex ${
+                        isFromMe ? "justify-end" : "justify-start"
                       }`}
                     >
-                      <p className="text-sm">{msg.message}</p>
-                      <p className="text-xs opacity-70 mt-1">
-                        {formatTime(timestamp)}
-                      </p>
+                      <div
+                        className={`max-w-xs lg:max-w-sm px-3 py-2 rounded-lg ${
+                          isFromMe
+                            ? "bg-amber-600 text-white"
+                            : "bg-neutral-700 text-neutral-100"
+                        }`}
+                      >
+                        <p className="text-sm">{msg.message}</p>
+                        <p className="text-xs opacity-70 mt-1">
+                          {formatTime(timestamp)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
+              <div ref={chatMessagesEndRef} />
             </div>
 
-            <div className="p-4 border-t border-gray-700">
+            {/* Message input */}
+            <div className="p-4 border-t border-neutral-700">
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && sendMessage()}
+                  onKeyPress={handleKeyPress}
                   placeholder="Type a message..."
                   className="flex-1 px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
                 <button
                   onClick={sendMessage}
-                  className="px-3 py-2 bg-amber-600 hover:bg-orange-600 text-white rounded-lg transition-colors cursor-pointer"
+                  disabled={!newMessage.trim()}
+                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-neutral-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
                 >
                   <svg
                     className="w-4 h-4"
@@ -458,16 +527,16 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
             </div>
           </div>
         ) : (
-          // Friends/Search View
+          // Friends/Search/Requests View
           <div className="flex-1 flex flex-col">
             {/* Tab Navigation */}
-            <div className="p-3 md:p-4 border-b border-neutral-700">
+            <div className="p-3 border-b border-neutral-700">
               <div className="flex space-x-1 bg-neutral-800 rounded-lg p-1">
                 <button
                   onClick={() => setActiveTab("friends")}
-                  className={`flex-1 px-2 md:px-3 py-2 text-xs md:text-sm rounded-md transition-colors focus-ring touch-target cursor-pointer ${
+                  className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors cursor-pointer ${
                     activeTab === "friends"
-                      ? "bg-amber-600 text-white shadow-glow"
+                      ? "bg-amber-600 text-white"
                       : "text-neutral-400 hover:text-white hover:bg-neutral-700"
                   }`}
                 >
@@ -475,9 +544,9 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
                 </button>
                 <button
                   onClick={() => setActiveTab("search")}
-                  className={`flex-1 px-2 md:px-3 py-2 text-xs md:text-sm rounded-md transition-colors focus-ring touch-target cursor-pointer ${
+                  className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors cursor-pointer ${
                     activeTab === "search"
-                      ? "bg-amber-600 text-white shadow-glow"
+                      ? "bg-amber-600 text-white"
                       : "text-neutral-400 hover:text-white hover:bg-neutral-700"
                   }`}
                 >
@@ -485,14 +554,13 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
                 </button>
                 <button
                   onClick={() => setActiveTab("requests")}
-                  className={`flex-1 px-2 md:px-3 py-2 text-xs md:text-sm rounded-md transition-colors relative focus-ring touch-target cursor-pointer ${
+                  className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors relative cursor-pointer ${
                     activeTab === "requests"
-                      ? "bg-amber-600 text-white shadow-glow"
+                      ? "bg-amber-600 text-white"
                       : "text-neutral-400 hover:text-white hover:bg-neutral-700"
                   }`}
                 >
-                  <span className="hidden sm:inline">Requests</span>
-                  <span className="sm:hidden">Req</span>
+                  Requests
                   {friendRequests.length > 0 && (
                     <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs flex items-center justify-center text-white font-bold">
                       {friendRequests.length > 9 ? "9+" : friendRequests.length}
@@ -502,8 +570,54 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
               </div>
             </div>
 
-            {/* Content */}
+            {/* Tab Content */}
             <div className="flex-1 overflow-y-auto">
+              {/* Friends Tab */}
+              {activeTab === "friends" && (
+                <div className="p-4">
+                  {friends.length === 0 ? (
+                    <div className="text-center text-neutral-400 mt-8">
+                      <p>No friends yet. Search for users to add them!</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {friends.map((friend) => (
+                        <div
+                          key={friend.id}
+                          onClick={() => openChat(friend)}
+                          className="p-3 bg-neutral-800 hover:bg-neutral-700 rounded-lg cursor-pointer transition-colors flex items-center justify-between"
+                        >
+                          <div>
+                            <p className="text-white font-medium">
+                              {friend.username}
+                            </p>
+                            {friend.leetcodeId && (
+                              <p className="text-neutral-400 text-sm">
+                                LeetCode: {friend.leetcodeId}
+                              </p>
+                            )}
+                          </div>
+                          <svg
+                            className="w-5 h-5 text-neutral-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.477 8-10 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.477-8 10-8s10 3.582 10 8z"
+                            />
+                          </svg>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Search Tab */}
               {activeTab === "search" && (
                 <div className="p-4">
                   <div className="relative mb-4">
@@ -527,15 +641,15 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
                       <button
                         onClick={handleSearch}
                         disabled={isSearching}
-                        className="px-3 py-2 bg-amber-600 hover:bg-orange-600 disabled:bg-neutral-600 text-white rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+                        className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-neutral-600 text-white rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
                       >
                         {isSearching ? "..." : "Search"}
                       </button>
                     </div>
 
-                    {/* Suggestions Dropdown */}
+                    {/* Suggestions */}
                     {showSuggestions && suggestions.length > 0 && (
-                      <div className="absolute top-full left-0 right-14 z-50 mt-1 bg-neutral-800 border border-neutral-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      <div className="absolute top-full left-0 right-16 z-50 mt-1 bg-neutral-800 border border-neutral-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                         {suggestions.map((suggestion) => (
                           <div
                             key={suggestion.id}
@@ -546,7 +660,7 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
                               {suggestion.username}
                             </div>
                             {suggestion.leetcodeId && (
-                              <div className="text-gray-400 text-xs">
+                              <div className="text-neutral-400 text-xs">
                                 LeetCode: {suggestion.leetcodeId}
                               </div>
                             )}
@@ -554,136 +668,88 @@ export default function LeftSidebar({ isOpen, onToggle, onOpenProfileSetup }) {
                         ))}
                       </div>
                     )}
-
-                    {/* Loading indicator for suggestions */}
-                    {isSearching && searchQuery.length >= 2 && (
-                      <div className="absolute top-full left-0 right-14 z-50 mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg p-3">
-                        <div className="text-gray-400 text-sm text-center">
-                          Searching...
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* Search Results */}
-                  {searchResults.map((result) => (
-                    <div
-                      key={result.id}
-                      className="p-3 bg-gray-800 rounded-lg mb-2 flex items-center justify-between"
-                    >
-                      <div>
-                        <span className="text-white block">
-                          {result.username}
-                        </span>
-                        {result.leetcodeId && (
-                          <span className="text-gray-400 text-sm">
-                            LeetCode: {result.leetcodeId}
-                          </span>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => sendFriendRequest(result.id)}
-                        className="px-3 py-1 bg-amber-600 hover:bg-orange-600 text-white text-sm rounded transition-colors cursor-pointer"
-                      >
-                        Send Request
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {activeTab === "requests" && (
-                <div className="p-4">
-                  {friendRequests.length === 0 ? (
-                    <p className="text-neutral-400 text-center">
-                      No pending requests
-                    </p>
-                  ) : (
-                    friendRequests.map((request) => (
+                  <div className="space-y-2">
+                    {searchResults.map((result) => (
                       <div
-                        key={request.id}
-                        className="p-3 bg-neutral-800 rounded-lg mb-2"
+                        key={result.id}
+                        className="p-3 bg-neutral-800 rounded-lg flex items-center justify-between"
                       >
-                        <div className="mb-2">
-                          <p className="text-white">
-                            {request.fromUser.username}
-                          </p>
-                          {request.fromUser.leetcodeId && (
-                            <p className="text-gray-400 text-sm">
-                              LeetCode: {request.fromUser.leetcodeId}
+                        <div>
+                          <p className="text-white">{result.username}</p>
+                          {result.leetcodeId && (
+                            <p className="text-neutral-400 text-sm">
+                              LeetCode: {result.leetcodeId}
                             </p>
                           )}
                         </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() =>
-                              handleFriendRequest(
-                                request.id,
-                                request.fromUserId,
-                                "accept"
-                              )
-                            }
-                            className="px-3 py-1 bg-amber-600 hover:bg-orange-600 text-white text-sm rounded transition-colors cursor-pointer"
-                          >
-                            Accept
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleFriendRequest(
-                                request.id,
-                                request.fromUserId,
-                                "decline"
-                              )
-                            }
-                            className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors cursor-pointer"
-                          >
-                            Decline
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => sendFriendRequest(result.id)}
+                          className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white text-sm rounded transition-colors cursor-pointer"
+                        >
+                          Add Friend
+                        </button>
                       </div>
-                    ))
-                  )}
+                    ))}
+                  </div>
                 </div>
               )}
 
-              {activeTab === "friends" && (
+              {/* Requests Tab */}
+              {activeTab === "requests" && (
                 <div className="p-4">
-                  {friends.length === 0 ? (
-                    <p className="text-neutral-400 text-center">
-                      No friends yet
-                    </p>
+                  {friendRequests.length === 0 ? (
+                    <div className="text-center text-neutral-400 mt-8">
+                      <p>No pending friend requests</p>
+                    </div>
                   ) : (
-                    friends.map((friend) => (
-                      <div
-                        key={friend.id}
-                        onClick={() => openChat(friend)}
-                        className="p-3 bg-neutral-800 hover:bg-neutral-700 rounded-lg mb-2 cursor-pointer transition-colors flex items-center justify-between"
-                      >
-                        <div>
-                          <span className="text-white block">
-                            {friend.username}
-                          </span>
-                          {friend.leetcodeId && (
-                            <span className="text-neutral-400 text-sm">
-                              LeetCode: {friend.leetcodeId}
-                            </span>
-                          )}
-                        </div>
-                        <svg
-                          className="w-4 h-4 text-neutral-400"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
+                    <div className="space-y-2">
+                      {friendRequests.map((request) => (
+                        <div
+                          key={request.id}
+                          className="p-3 bg-neutral-800 rounded-lg"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.477 8-10 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.477-8 10-8s10 3.582 10 8z"
-                          />
-                        </svg>
-                      </div>
-                    ))
+                          <div className="mb-3">
+                            <p className="text-white font-medium">
+                              {request.fromUser.username}
+                            </p>
+                            {request.fromUser.leetcodeId && (
+                              <p className="text-neutral-400 text-sm">
+                                LeetCode: {request.fromUser.leetcodeId}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() =>
+                                handleFriendRequest(
+                                  request.id,
+                                  request.fromUserId,
+                                  "accept"
+                                )
+                              }
+                              className="flex-1 px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded transition-colors cursor-pointer"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleFriendRequest(
+                                  request.id,
+                                  request.fromUserId,
+                                  "decline"
+                                )
+                              }
+                              className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition-colors cursor-pointer"
+                            >
+                              Decline
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               )}
