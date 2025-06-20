@@ -58,6 +58,8 @@ export default function FriendCard({
   hasError,
   onRetry,
   filterMode,
+  isOwnCard = false,
+  showRemoveButton = true,
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -90,13 +92,13 @@ export default function FriendCard({
           </p>
           <button
             onClick={onRetry}
-            className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 text-sm sm:text-base"
+            className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 text-sm sm:text-base cursor-pointer"
           >
             Try Again
           </button>
           <button
             onClick={onRemove}
-            className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1 rounded-full bg-gray-700 text-gray-400 hover:bg-red-600 hover:text-white transition-colors duration-200"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1 rounded-full bg-gray-700 text-gray-400 hover:bg-red-600 hover:text-white transition-colors duration-200 cursor-pointer"
             aria-label="Remove user"
           >
             <svg
@@ -120,49 +122,60 @@ export default function FriendCard({
   }
 
   return (
-    <div className="bg-gray-800 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 relative group border border-gray-700 min-h-[350px] sm:min-h-[400px]">
-      <button
-        onClick={onRemove}
-        className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1 rounded-full bg-gray-700 text-gray-400 hover:bg-red-600 hover:text-white transition-colors duration-200 opacity-0 group-hover:opacity-100 focus:opacity-100"
-        aria-label="Remove user"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-4 w-4 sm:h-5 sm:w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+    <div className="glass-morphism rounded-xl shadow-md overflow-hidden card-hover border border-gray-700/50 min-h-[300px] md:min-h-[350px] lg:min-h-[400px] relative group">
+      {showRemoveButton && (
+        <button
+          onClick={onRemove}
+          className="absolute top-2 right-2 md:top-3 md:right-3 lg:top-4 lg:right-4 p-1.5 rounded-full bg-gray-700/80 backdrop-blur-sm text-gray-400 hover:bg-red-600 hover:text-white transition-all duration-200 opacity-0 group-hover:opacity-100 focus:opacity-100 focus-ring touch-target z-10 cursor-pointer"
+          aria-label="Remove user"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4 md:h-5 md:w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      )}
 
-      <div className="p-6 sm:p-8">
-        <div className="flex items-center mb-4 sm:mb-6">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-white">{user}</h2>
+      <div className="p-4 md:p-6 lg:p-8">
+        <div className="flex items-center mb-3 md:mb-4 lg:mb-6">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-white truncate">
+                {user}
+              </h2>
+              {isOwnCard && (
+                <span className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs px-2 py-1 rounded-full font-medium shadow-glow shrink-0">
+                  You
+                </span>
+              )}
+            </div>
             <a
               href={`https://leetcode.com/${user}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs sm:text-sm text-indigo-400 hover:underline"
+              className="text-xs md:text-sm text-indigo-400 hover:text-indigo-300 hover:underline transition-colors"
             >
-              View Profile
+              View Profile →
             </a>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6 text-center">
-          <div className="py-3 sm:py-4 px-2 sm:px-3 bg-green-900/50 rounded-lg border border-green-800">
-            <div className="text-xs text-green-400 uppercase font-semibold tracking-wide mb-1 sm:mb-2">
+        <div className="grid grid-cols-3 gap-2 md:gap-3 lg:gap-4 mb-3 md:mb-4 lg:mb-6 text-center">
+          <div className="py-2 md:py-3 lg:py-4 px-1 md:px-2 lg:px-3 bg-green-900/50 rounded-lg border border-green-800/50 backdrop-blur-sm">
+            <div className="text-xs text-green-400 uppercase font-semibold tracking-wide mb-1">
               Easy
             </div>
-            <div className="text-lg sm:text-2xl font-bold text-green-300">
+            <div className="text-base md:text-lg lg:text-2xl font-bold text-green-300">
               {stats.easySolved || 0}
             </div>
           </div>

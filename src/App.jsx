@@ -2,15 +2,44 @@
 import React, { useEffect, useState, useCallback } from "react";
 import FriendCard from "./components/FriendCard";
 import AddFriendForm from "./components/AddFriendForm";
-import RecentSolvesBox from "./components/RecentSolvesBox";
-import QuestionOfTheDayBox from "./components/QuestionOfTheDayBox";
 import Notification from "./components/Notification";
+import LeftSidebar from "./components/LeftSidebar";
+import RightSidebar from "./components/RightSidebar";
 import { fetchLeetcodeStats, checkUserExists } from "./api/fetchLeetcodeStats";
+import { useAuth } from "./contexts/AuthContext";
 
 export default function App() {
-  const [usernames, setUsernames] = useState(
-    () => JSON.parse(localStorage.getItem("leetcodeUsers")) || []
+  const {
+    user,
+    trackedUsers,
+    addFriend: addTrackedUser,
+    removeFriend: removeTrackedUser,
+  } = useAuth();
+
+  // UI State
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
+  const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
+
+  // User's own LeetCode ID from localStorage (for guest users)
+  const [userLeetcodeId, setUserLeetcodeId] = useState(
+    () => localStorage.getItem("userLeetcodeId") || ""
   );
+
+  // Get the current user's LeetCode ID from multiple sources
+  const getCurrentUserLeetCodeId = () => {
+    return (
+      user?.leetcodeId ||
+      userLeetcodeId ||
+      localStorage.getItem("userLeetcodeId") ||
+      ""
+    );
+  };
+
+  // Get the current effective LeetCode ID
+  const currentLeetCodeId = getCurrentUserLeetCodeId();
+
+  // Friends and stats data
+  const [usernames, setUsernames] = useState([]);
   const [statsMap, setStatsMap] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(new Set());
@@ -20,6 +49,78 @@ export default function App() {
     () => localStorage.getItem("recentSolvesFilterMode") || "24hours"
   );
   const [notification, setNotification] = useState(null);
+  const [nextRefreshTime, setNextRefreshTime] = useState(null);
+  const [timeUntilRefresh, setTimeUntilRefresh] = useState(null);
+
+  // Sync localStorage changes with state for guest users
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const newLeetCodeId = localStorage.getItem("userLeetcodeId") || "";
+      if (!user && newLeetCodeId !== userLeetcodeId) {
+        setUserLeetcodeId(newLeetCodeId);
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [user, userLeetcodeId]);
+
+  // Handle filter mode change
+  const handleFilterModeChange = (newMode) => {
+    setFilterMode(newMode);
+    localStorage.setItem("recentSolvesFilterMode", newMode);
+    // Trigger a refresh to update the data with new filter
+    reloadAll();
+  };
+
+  // Helper function to add user to list (either own ID or tracked user)
+  const addUserToList = async (username) => {
+    try {
+      if (user) {
+        // If authenticated, use Firebase context (which also updates localStorage)
+        await addTrackedUser(username);
+      } else {
+        // If guest, use localStorage only
+        const currentUsers = JSON.parse(
+          localStorage.getItem("leetcodeUsers") || "[]"
+        );
+        if (!currentUsers.includes(username)) {
+          const updated = [...currentUsers, username];
+          localStorage.setItem("leetcodeUsers", JSON.stringify(updated));
+          // Trigger custom event to update state
+          window.dispatchEvent(new CustomEvent("trackedUsersChanged"));
+        }
+      }
+    } catch (error) {
+      console.error("Error adding user to list:", error);
+      // Fallback to localStorage for any errors
+      const currentUsers = JSON.parse(
+        localStorage.getItem("leetcodeUsers") || "[]"
+      );
+      if (!currentUsers.includes(username)) {
+        const updated = [...currentUsers, username];
+        localStorage.setItem("leetcodeUsers", JSON.stringify(updated));
+        window.dispatchEvent(new CustomEvent("trackedUsersChanged"));
+      }
+    }
+  };
+
+  // Sync usernames with tracked users and user's own ID
+  useEffect(() => {
+    // Use trackedUsers from context (which is synced with localStorage)
+    let allUsernames = [...trackedUsers];
+
+    // Ensure user's own ID is first in the list if it exists
+    if (currentLeetCodeId && !allUsernames.includes(currentLeetCodeId)) {
+      allUsernames = [currentLeetCodeId, ...allUsernames];
+    } else if (currentLeetCodeId && allUsernames.includes(currentLeetCodeId)) {
+      // Move user's ID to the front
+      allUsernames = allUsernames.filter((u) => u !== currentLeetCodeId);
+      allUsernames = [currentLeetCodeId, ...allUsernames];
+    }
+
+    setUsernames(allUsernames);
+  }, [trackedUsers, currentLeetCodeId]);
 
   const loadStats = useCallback(
     async (username, mode = filterMode) => {
@@ -31,9 +132,11 @@ export default function App() {
           next.delete(username);
           return next;
         });
+        return stats;
       } catch (err) {
         console.error("Error loading stats for", username, err);
         setErrorUsers((prev) => new Set([...prev, username]));
+        throw err; // Re-throw for handling in addUser
       }
     },
     [filterMode]
@@ -56,17 +159,11 @@ export default function App() {
       setIsLoading(false);
       // Clear loading state for all users after refresh
       setLoadingUsers(new Set());
+      // Set next refresh time (10 minutes from now)
+      const nextRefresh = Date.now() + 600000;
+      setNextRefreshTime(nextRefresh);
     }
   }, [usernames, filterMode, loadStats]);
-
-  // Toggle filter mode and save to localStorage
-  const toggleFilterMode = () => {
-    const newMode = filterMode === "24hours" ? "today" : "24hours";
-    setFilterMode(newMode);
-    localStorage.setItem("recentSolvesFilterMode", newMode);
-    // Trigger a refresh to update the data with new filter
-    reloadAll();
-  };
 
   useEffect(() => {
     if (usernames.length > 0) {
@@ -80,36 +177,74 @@ export default function App() {
     return () => clearInterval(interval);
   }, [usernames, reloadAll]);
 
+  // Countdown timer effect
+  useEffect(() => {
+    if (!nextRefreshTime) return;
+
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const timeLeft = nextRefreshTime - now;
+
+      if (timeLeft <= 0) {
+        setTimeUntilRefresh(null);
+        setNextRefreshTime(null);
+        clearInterval(interval);
+      } else {
+        const minutes = Math.floor(timeLeft / 60000);
+        const seconds = Math.floor((timeLeft % 60000) / 1000);
+        setTimeUntilRefresh({ minutes, seconds });
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [nextRefreshTime]);
+
   async function addUser(username) {
     if (username && !usernames.includes(username)) {
       // Check if user exists first
-      const userExists = await checkUserExists(username);
+      try {
+        const userExists = await checkUserExists(username);
 
-      if (!userExists) {
+        if (!userExists) {
+          setNotification({
+            type: "error",
+            message: `User "${username}" does not exist on LeetCode. Please check the username and try again.`,
+          });
+          return;
+        }
+      } catch (checkError) {
+        console.error("Error checking user existence:", checkError);
         setNotification({
           type: "error",
-          message: `User "${username}" does not exist on LeetCode. Please check the username and try again.`,
+          message: `Failed to verify user "${username}". Please try again.`,
         });
         return;
       }
-
-      const updated = [...usernames, username];
-      setUsernames(updated);
-      localStorage.setItem("leetcodeUsers", JSON.stringify(updated));
 
       // Set loading state for this specific user
       setLoadingUsers((prev) => new Set([...prev, username]));
 
       try {
-        await loadStats(username, filterMode);
+        // Use the helper function to add user and update state immediately
+        await addUserToList(username);
+
+        // Try to load stats, but don't fail the whole operation if this fails
+        try {
+          await loadStats(username, filterMode);
+        } catch (statsError) {
+          console.error("Error loading stats for", username, statsError);
+          // Stats loading failed, but user was added successfully
+        }
+
         setNotification({
           type: "success",
           message: `Successfully added ${username}!`,
         });
-      } catch {
+      } catch (error) {
+        console.error("Error adding friend:", error);
         setNotification({
           type: "error",
-          message: `Failed to load stats for ${username}. Please try again.`,
+          message: `Failed to add ${username}. Please try again.`,
         });
       } finally {
         setLoadingUsers((prev) => {
@@ -127,25 +262,58 @@ export default function App() {
   }
 
   function removeUser(username) {
-    const updated = usernames.filter((user) => user !== username);
-    setUsernames(updated);
-    localStorage.setItem("leetcodeUsers", JSON.stringify(updated));
-    setStatsMap((prev) => {
-      const newMap = { ...prev };
-      delete newMap[username];
-      return newMap;
-    });
-    // Clean up loading and error states
-    setLoadingUsers((prev) => {
-      const next = new Set(prev);
-      next.delete(username);
-      return next;
-    });
-    setErrorUsers((prev) => {
-      const next = new Set(prev);
-      next.delete(username);
-      return next;
-    });
+    // Prevent removing user's own LeetCode ID
+    if (username === currentLeetCodeId) {
+      setNotification({
+        type: "warning",
+        message: "You cannot remove your own LeetCode ID from tracking.",
+      });
+      return;
+    }
+
+    try {
+      if (user) {
+        // If authenticated, use Firebase context
+        removeTrackedUser(username);
+      } else {
+        // If not authenticated, use localStorage directly and trigger event
+        const updated = usernames.filter((user) => user !== username);
+        setUsernames(updated);
+        localStorage.setItem("leetcodeUsers", JSON.stringify(updated));
+        // Dispatch custom event to trigger state update in AuthContext
+        window.dispatchEvent(new CustomEvent("trackedUsersChanged"));
+      }
+
+      // Clean up stats and UI state immediately
+      setStatsMap((prev) => {
+        const newMap = { ...prev };
+        delete newMap[username];
+        return newMap;
+      });
+
+      // Clean up loading and error states
+      setLoadingUsers((prev) => {
+        const next = new Set(prev);
+        next.delete(username);
+        return next;
+      });
+      setErrorUsers((prev) => {
+        const next = new Set(prev);
+        next.delete(username);
+        return next;
+      });
+
+      setNotification({
+        type: "success",
+        message: `Removed ${username} from tracking.`,
+      });
+    } catch (error) {
+      console.error("Error removing user:", error);
+      setNotification({
+        type: "error",
+        message: `Failed to remove ${username}. Please try again.`,
+      });
+    }
   }
 
   async function retryUser(username) {
@@ -159,100 +327,161 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4 sm:p-6">
-      {/* Question of the Day Box */}
-      <QuestionOfTheDayBox
-        usernames={usernames}
-        refreshTrigger={refreshTrigger}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-x-hidden">
+      {/* Left Sidebar */}
+      <LeftSidebar
+        isOpen={leftSidebarOpen}
+        onToggle={() => setLeftSidebarOpen(!leftSidebarOpen)}
       />
 
-      {/* Recent Solves Box */}
-      <RecentSolvesBox
+      {/* Right Sidebar */}
+      <RightSidebar
+        isOpen={rightSidebarOpen}
+        onToggle={() => setRightSidebarOpen(!rightSidebarOpen)}
+        filterMode={filterMode}
+        onFilterModeChange={handleFilterModeChange}
+        usernames={usernames}
         statsMap={statsMap}
-        usernames={usernames}
-        loadingUsers={loadingUsers}
+        refreshTrigger={refreshTrigger}
+        userLeetcodeId={currentLeetCodeId}
       />
 
-      <div className="max-w-7xl mx-auto">
-        <header className="text-center mb-8 sm:mb-10">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-2">
+      {/* Main Content */}
+      <div
+        className={`transition-all duration-300 ${
+          leftSidebarOpen ? "md:ml-96" : "ml-0"
+        } ${rightSidebarOpen ? "md:mr-96" : "mr-0"} p-4 md:p-6 lg:p-8`}
+      >
+        {/* Mobile sidebar toggles */}
+        <div className="flex justify-between items-center md:hidden mb-4">
+          <button
+            onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+            className="p-2 bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-700 hover:bg-gray-700/50 transition-colors touch-target focus-ring cursor-pointer"
+            aria-label="Toggle friends sidebar"
+          >
+            <svg
+              className="w-5 h-5 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+          </button>
+
+          <button
+            onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
+            className="p-2 bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-700 hover:bg-gray-700/50 transition-colors touch-target focus-ring cursor-pointer"
+            aria-label="Toggle profile sidebar"
+          >
+            <svg
+              className="w-5 h-5 text-white"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              />
+            </svg>
+          </button>
+        </div>
+
+        {/* Header */}
+        <div className="text-center mb-6 lg:mb-8">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold gradient-text mb-2">
             LeetCode Stalker
           </h1>
-          <p className="text-base sm:text-lg text-gray-300">
+          <p className="text-base md:text-lg text-gray-300 mb-6 lg:mb-8">
             Stalk them up, Bring them down
           </p>
-        </header>
 
-        <div className="mb-8 sm:mb-10 max-w-2xl mx-auto">
-          <AddFriendForm addFriend={addUser} />
-          <div className="flex justify-center items-center gap-4 mt-6 sm:mt-10">
+          {/* Search and Reload Section */}
+          <div className="max-w-2xl mx-auto flex flex-col sm:flex-row gap-3 md:gap-4 items-stretch sm:items-center">
+            <div className="flex-1">
+              <AddFriendForm
+                addFriend={addUser}
+                placeholder="Add LeetCode username to track"
+              />
+            </div>
             <button
               onClick={reloadAll}
               disabled={isLoading || usernames.length === 0}
-              className={`flex items-center gap-2 ${
+              className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors btn-hover-scale focus-ring touch-target min-w-[120px] ${
                 isLoading || usernames.length === 0
                   ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-indigo-600 hover:bg-indigo-700"
-              } text-white font-medium px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg shadow-md transition-all cursor-pointer text-sm sm:text-base`}
+                  : "bg-indigo-600 hover:bg-indigo-700 cursor-pointer"
+              } text-white font-medium px-4 py-2.5 rounded-lg shadow-md transition-all`}
+              title={
+                timeUntilRefresh
+                  ? `Auto-refresh in ${
+                      timeUntilRefresh.minutes
+                    }:${timeUntilRefresh.seconds.toString().padStart(2, "0")}`
+                  : "Refresh All Stats"
+              }
             >
               {isLoading ? (
-                <>
-                  <svg
-                    className="animate-spin h-4 w-4 sm:h-5 sm:w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Loading...
-                </>
-              ) : (
-                "Refresh All Stats"
-              )}
-            </button>
-            {/* Filter Mode Toggle Button beside refresh button */}
-            {usernames.length > 0 && (
-              <button
-                onClick={toggleFilterMode}
-                className="flex items-center gap-2 bg-gray-800/95 backdrop-blur-sm text-white px-3 py-2 rounded-lg shadow-lg border border-gray-700 hover:bg-gray-700/95 transition-colors text-sm font-medium cursor-pointer"
-              >
                 <svg
-                  className="w-4 h-4 text-indigo-400"
+                  className="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
-                  stroke="currentColor"
                 >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
                   <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                  />
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
-                <span>{filterMode === "24hours" ? "Last 24h" : "Today"}</span>
-              </button>
-            )}
+              ) : (
+                <>
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                  {timeUntilRefresh && (
+                    <span className="text-xs">
+                      {timeUntilRefresh.minutes}:
+                      {timeUntilRefresh.seconds.toString().padStart(2, "0")}
+                    </span>
+                  )}
+                </>
+              )}
+            </button>
           </div>
         </div>
 
+        {/* Tracked Users Cards Grid */}
         {usernames.length === 0 ? (
-          <div className="text-center py-16 sm:py-20 bg-gray-800 rounded-xl shadow-sm border border-gray-700 mx-4 sm:mx-0">
+          <div className="text-center py-12 md:py-20 glass-morphism rounded-xl mx-2 md:mx-4">
             <div className="max-w-md mx-auto px-4">
               <svg
-                className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-gray-400"
+                className="mx-auto h-10 w-10 md:h-12 md:w-12 text-gray-400 mb-4"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -264,18 +493,33 @@ export default function App() {
                   d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
                 />
               </svg>
-              <h3 className="mt-2 text-base sm:text-lg font-medium text-white">
-                No friends added yet
+              <h3 className="text-lg md:text-xl font-medium text-white mb-2">
+                No users tracked yet
               </h3>
-              <p className="mt-1 text-sm sm:text-base text-gray-400">
+              <p className="text-gray-400 text-sm md:text-base">
                 Add LeetCode usernames to track their progress
               </p>
+              {!user && (
+                <p className="mt-3 text-xs md:text-sm text-indigo-400">
+                  💡 Sign in to sync your tracked users across all devices
+                </p>
+              )}
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+          <div
+            className="grid gap-4 md:gap-6 px-2 md:px-0 justify-center"
+            style={{
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 400px))",
+              gridAutoRows: "max-content",
+            }}
+          >
             {usernames
               .sort((a, b) => {
+                // Always put user's own ID first
+                if (a === currentLeetCodeId) return -1;
+                if (b === currentLeetCodeId) return 1;
+
                 const statsA = statsMap[a] || {};
                 const statsB = statsMap[b] || {};
                 const recentA = statsA.recentSolved || 0;
@@ -287,57 +531,25 @@ export default function App() {
                 }
                 return a.localeCompare(b);
               })
-              .map((user) => (
+              .map((username) => (
                 <FriendCard
-                  key={user}
-                  user={user}
-                  stats={statsMap[user] || {}}
-                  onRemove={() => removeUser(user)}
-                  isLoading={loadingUsers.has(user)}
-                  hasError={errorUsers.has(user)}
-                  onRetry={() => retryUser(user)}
+                  key={username}
+                  user={username}
+                  stats={statsMap[username] || {}}
+                  onRemove={() => removeUser(username)}
+                  isLoading={loadingUsers.has(username)}
+                  hasError={errorUsers.has(username)}
+                  onRetry={() => retryUser(username)}
                   filterMode={filterMode}
+                  isOwnCard={username === currentLeetCodeId}
+                  showRemoveButton={username !== currentLeetCodeId}
                 />
               ))}
           </div>
         )}
       </div>
-      <footer className="text-center mt-12 sm:mt-16 text-sm sm:text-base text-gray-400 px-4">
-        <hr className="my-4 sm:my-6 border-gray-600" />
-        <p className="flex flex-col items-center gap-2">
-          <a
-            href="https://github.com/Om-Jadon/leetcode-stalker"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center text-indigo-400 hover:underline gap-2"
-          >
-            <svg
-              className="w-5 h-5 text-indigo-400"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                fillRule="evenodd"
-                d="M12 2C6.477 2 2 6.484 2 12.021c0 4.428 2.865 8.184 6.839 9.504.5.092.682-.217.682-.483 0-.237-.009-.868-.014-1.703-2.782.605-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.004.07 1.532 1.032 1.532 1.032.892 1.53 2.341 1.088 2.91.832.091-.647.35-1.088.636-1.339-2.221-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.295 2.748-1.025 2.748-1.025.546 1.378.203 2.397.1 2.65.64.7 1.028 1.595 1.028 2.688 0 3.847-2.337 4.695-4.566 4.944.359.309.678.919.678 1.853 0 1.337-.012 2.419-.012 2.749 0 .268.18.579.688.481C19.138 20.203 22 16.447 22 12.021 22 6.484 17.523 2 12 2z"
-                clipRule="evenodd"
-              />
-            </svg>
-            View on GitHub
-          </a>
-          <span>
-            Want to help?{" "}
-            <a
-              href="https://github.com/Om-Jadon/leetcode-stalker"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-indigo-400 hover:underline"
-            >
-              Contribute on GitHub!
-            </a>
-          </span>
-        </p>
-      </footer>
+
+      {/* Notification */}
       {notification && (
         <Notification
           type={notification.type}

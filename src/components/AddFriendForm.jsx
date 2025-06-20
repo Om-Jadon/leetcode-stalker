@@ -1,7 +1,10 @@
 // AddFriendForm.jsx
 import { useState } from "react";
 
-export default function AddFriendForm({ addFriend }) {
+export default function AddFriendForm({
+  addFriend,
+  placeholder = "Enter LeetCode username",
+}) {
   const [username, setUsername] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -19,11 +22,11 @@ export default function AddFriendForm({ addFriend }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-gray-800 p-3 sm:p-4 rounded-xl shadow-sm border border-gray-700 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 transition-all duration-200">
-        <div className="flex items-center gap-3 flex-1">
+    <form onSubmit={handleSubmit} className="w-full">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-3 glass-morphism-light p-3 md:p-4 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-indigo-500/50 focus-within:border-indigo-500/50 transition-all duration-200">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           <svg
-            className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400 flex-shrink-0"
+            className="h-5 w-5 md:h-6 md:w-6 text-gray-400 shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -38,19 +41,20 @@ export default function AddFriendForm({ addFriend }) {
           <input
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter LeetCode username"
-            className="flex-grow border-0 focus:ring-0 p-0 text-white placeholder-gray-400 bg-transparent text-sm sm:text-base"
+            placeholder={placeholder}
+            className="flex-1 min-w-0 border-0 focus:ring-0 p-0 text-white placeholder-gray-400 bg-transparent text-sm md:text-base"
             disabled={isSubmitting}
+            autoComplete="off"
           />
         </div>
         <button
           type="submit"
           disabled={!username.trim() || isSubmitting}
-          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base ${
+          className={`px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-medium text-sm md:text-base transition-all duration-150 shrink-0 focus-ring touch-target ${
             !username.trim() || isSubmitting
               ? "bg-gray-600 cursor-not-allowed text-gray-400"
-              : "bg-indigo-600 hover:bg-indigo-700 text-white"
-          } shadow-sm transition-colors duration-150 flex-shrink-0`}
+              : "bg-indigo-600 hover:bg-indigo-700 text-white btn-hover-scale shadow-glow cursor-pointer"
+          }`}
         >
           {isSubmitting ? (
             <div className="flex items-center gap-2">

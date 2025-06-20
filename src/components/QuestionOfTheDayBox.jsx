@@ -39,7 +39,11 @@ const getDifficultyColors = (difficulty) => {
   }
 };
 
-export default function QuestionOfTheDayBox({ usernames, refreshTrigger }) {
+export default function QuestionOfTheDayBox({
+  usernames,
+  refreshTrigger,
+  compactMode = false,
+}) {
   // Default to collapsed on all screens (always closed by default on reload)
   const [isCollapsed, setIsCollapsed] = useState(true);
 
@@ -106,6 +110,180 @@ export default function QuestionOfTheDayBox({ usernames, refreshTrigger }) {
     ([, solved]) => !solved
   );
 
+  // Compact mode for sidebar embedding
+  if (compactMode) {
+    return (
+      <div className="overflow-hidden">
+        {/* Header */}
+        <div
+          className="flex items-center justify-between p-3 border-b border-gray-700 cursor-pointer hover:bg-gray-700/50 transition-colors"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+        >
+          <div className="flex items-center gap-2">
+            <svg
+              className="h-4 w-4 text-orange-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+              />
+            </svg>
+            <h3 className="text-sm font-semibold text-white">
+              Question of the Day
+            </h3>
+          </div>
+          <button
+            className="p-1 rounded-full hover:bg-gray-600 transition-colors text-gray-400 hover:text-white"
+            aria-label={isCollapsed ? "Expand" : "Collapse"}
+          >
+            <svg
+              className={`h-3 w-3 transition-transform duration-200 ${
+                isCollapsed ? "rotate-180" : ""
+              }`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+        </div>
+
+        {/* Content */}
+        {!isCollapsed && (
+          <div className="p-3 space-y-3 max-h-80 overflow-y-auto">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <svg
+                  className="animate-spin h-4 w-4 text-orange-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              </div>
+            ) : error ? (
+              <div className="text-center py-4">
+                <p className="text-red-400 text-xs mb-2">Failed to load</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="text-indigo-400 hover:text-indigo-300 text-xs underline cursor-pointer"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : dailyChallenge ? (
+              <div className="space-y-3">
+                {/* Problem */}
+                <div
+                  className={`p-3 rounded-lg border ${
+                    getDifficultyColors(dailyChallenge.question.difficulty).bg
+                  } ${
+                    getDifficultyColors(dailyChallenge.question.difficulty)
+                      .border
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <h4 className="text-white text-sm font-medium leading-tight flex-1">
+                      {dailyChallenge.question.title}
+                    </h4>
+                    <span
+                      className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                        getDifficultyColors(dailyChallenge.question.difficulty)
+                          .badge
+                      } shrink-0`}
+                    >
+                      {dailyChallenge.question.difficulty}
+                    </span>
+                  </div>
+                  <a
+                    href={`https://leetcode.com/problems/${dailyChallenge.question.titleSlug}/`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-indigo-400 hover:text-indigo-300 text-xs transition-colors"
+                  >
+                    <span>Solve Problem</span>
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                  </a>
+                </div>
+
+                {/* User solve status */}
+                {usernames.length > 0 && (
+                  <div>
+                    <h5 className="text-gray-300 text-xs font-medium mb-2">
+                      Solve Status
+                    </h5>
+                    <div className="space-y-1">
+                      {usernames.map((username) => (
+                        <div
+                          key={username}
+                          className="flex items-center justify-between text-xs"
+                        >
+                          <span className="text-gray-300">{username}</span>
+                          <span
+                            className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                              userSolveStatus[username]
+                                ? "bg-green-800 text-green-200"
+                                : "bg-gray-700 text-gray-300"
+                            }`}
+                          >
+                            {userSolveStatus[username]
+                              ? "Solved"
+                              : "Not Solved"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-gray-400 text-xs text-center py-4">
+                No daily challenge available
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Original full-size modal mode
   return (
     <div
       className="hidden sm:block fixed top-4 left-4 z-40 w-80 max-w-[calc(100vw-2rem)] sm:w-96 lg:w-80 xl:w-96 

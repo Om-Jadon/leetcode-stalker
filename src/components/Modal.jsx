@@ -26,21 +26,21 @@ export default function Modal({ isOpen, onClose, title, children }) {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity modal-backdrop"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity modal-backdrop cursor-pointer"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative w-full max-w-2xl max-h-[90vh] transform overflow-hidden rounded-xl bg-gray-800 border border-gray-700 shadow-xl transition-all modal-content">
+      <div className="flex min-h-full items-center justify-center p-2 md:p-4">
+        <div className="relative w-full max-w-sm md:max-w-2xl max-h-[95vh] md:max-h-[90vh] transform overflow-hidden rounded-xl glass-morphism shadow-glow-lg transition-all modal-content">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-700">
-            <h2 className="text-lg sm:text-xl font-bold text-white truncate pr-4">
+          <div className="flex items-center justify-between p-3 md:p-4 lg:p-6 border-b border-gray-700/50">
+            <h2 className="text-base md:text-lg lg:text-xl font-bold text-white truncate pr-4">
               {title}
             </h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-gray-700 transition-colors btn-hover-scale flex-shrink-0"
+              className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-gray-700/50 transition-colors btn-hover-scale focus-ring touch-target shrink-0 cursor-pointer"
               aria-label="Close modal"
             >
               <svg
@@ -60,7 +60,7 @@ export default function Modal({ isOpen, onClose, title, children }) {
           </div>
 
           {/* Content */}
-          <div className="p-4 sm:p-6 max-h-96 sm:max-h-[60vh] overflow-y-auto">
+          <div className="p-3 md:p-4 lg:p-6 max-h-[70vh] md:max-h-[60vh] overflow-y-auto mobile-padding">
             {children}
           </div>
         </div>

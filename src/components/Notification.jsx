@@ -116,7 +116,7 @@ export default function Notification({
         </div>
         <button
           onClick={onClose}
-          className={`flex-shrink-0 p-1 rounded-full hover:bg-white/10 transition-colors ${styles.text}`}
+          className={`flex-shrink-0 p-1 rounded-full hover:bg-white/10 transition-colors ${styles.text} cursor-pointer`}
         >
           <svg
             className="h-4 w-4"
