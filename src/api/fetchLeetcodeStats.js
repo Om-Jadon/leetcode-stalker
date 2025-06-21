@@ -1,4 +1,5 @@
-const endpoint = "/api/graphql";
+const endpoint =
+  "https://us-central1-leetcode-stalker-dd91f.cloudfunctions.net/graphql";
 
 // Query to fetch daily challenge
 const dailyChallengeQuery = `

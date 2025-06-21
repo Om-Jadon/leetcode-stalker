@@ -21,12 +21,13 @@ A brutally simple web app to track your friends' LeetCode progress — whether t
 
 - 🌟 **Daily Challenge**: Displays the LeetCode Problem of the Day and who solved it
 - 📝 **Latest Solves**: Shows recent solves by your friends in real-time
+- 🤝 **Friend Comparison**: Compare your progress with friends
 - 🏆 **Leaderboard**: See who's grinding the hardest
 - 💬 **Chat Feature**: Real-time chat with your friends to discuss problems and solutions
 
 ### Authentication & Sync
 
-- 🔐 **Multi-Auth**: Google and Guest authentication options
+- 🔐 **Multi-Auth**: Google and Anonymous authentication options
 - ☁️ **Cloud Sync**: Friends list synced across all your devices
 - 👤 **Profile Management**: Store and share your own LeetCode ID
 - 🔄 **Cross-device**: Access your data from any device
@@ -51,6 +52,24 @@ A brutally simple web app to track your friends' LeetCode progress — whether t
 - **Authentication**: Firebase Auth (Google/Anonymous)
 - **CI/CD**: GitHub Actions for automatic deployment
 
+### API Proxy
+
+The app uses a Firebase Function to proxy requests to LeetCode's GraphQL API to avoid CORS issues:
+
+- **Function**: `https://us-central1-leetcode-stalker-dd91f.cloudfunctions.net/graphql`
+- **Source**: `/functions/index.js`
+
+---
+
+## 📈 Migration from Vercel
+
+This app was migrated from Vercel to Firebase for better scalability:
+
+- **Function Limits**: 2M/month vs Vercel's 100K/month
+- **Better Integration**: Unified platform for hosting, functions, and database
+- **Cost Efficiency**: Generous free tier with pay-as-you-go scaling
+
+---
 
 ## 🛠 Run Locally
 
@@ -65,6 +84,14 @@ cp .env.example .env
 
 npm run dev
 ```
+
+## 🚀 Deployment
+
+This app is deployed on Firebase and automatically deploys via GitHub Actions when you push to the main branch.
+
+### Firebase Setup & Deployment
+
+For detailed Firebase setup, configuration, and deployment instructions, see [FIREBASE_SETUP.md](./FIREBASE_SETUP.md).
 
 ### Local Firebase Development
 
