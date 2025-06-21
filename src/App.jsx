@@ -367,29 +367,6 @@ export default function App() {
             leftSidebarOpen ? "md:ml-96" : "ml-0"
           } ${rightSidebarOpen ? "md:mr-96" : "mr-0"} p-4 md:p-6 lg:p-8`}
         >
-          {/* Mobile sidebar toggle for left sidebar only */}
-          <div className="flex justify-between items-center md:hidden mb-4">
-            <button
-              onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-              className="p-2 bg-neutral-800/50 backdrop-blur-sm rounded-lg border border-neutral-700 hover:bg-neutral-700/50 transition-colors touch-target focus-ring cursor-pointer"
-              aria-label="Toggle chat sidebar"
-            >
-              <svg
-                className="w-5 h-5 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                />
-              </svg>
-            </button>
-          </div>
-
           {/* Header */}
           <div className="text-center mb-6 lg:mb-8">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold gradient-text mb-2">

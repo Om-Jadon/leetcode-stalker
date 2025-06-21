@@ -32,12 +32,12 @@ export default function LeftSidebar({
   const chatMessagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive, when switching to chat tab, or when sidebar opens
   useEffect(() => {
     if (chatMessagesEndRef.current && activeTab === "chat") {
       chatMessagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [chatMessages, activeTab]);
+  }, [chatMessages, activeTab, isOpen]);
 
   // Load user's friends from Firebase
   const loadFriends = useCallback(async () => {
