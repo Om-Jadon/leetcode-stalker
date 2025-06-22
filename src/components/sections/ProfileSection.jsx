@@ -50,14 +50,14 @@ export default function ProfileSection({
   return (
     <div className="space-y-6">
       {/* User Authentication Section */}
-      <div className="bg-neutral-800/50 backdrop-blur-sm p-4 rounded-lg border border-neutral-700">
-        <h3 className="text-sm font-medium text-neutral-300 mb-3">Account</h3>
+      <div className="bg-slate-800/50 backdrop-blur-sm p-4 rounded-lg border border-slate-700">
+        <h3 className="text-sm font-medium text-slate-300 mb-3">Account</h3>
         {authLoading ? (
           <ProfileSkeleton />
         ) : !user ? (
           <div className="text-center space-y-3">
             <svg
-              className="w-8 h-8 text-neutral-500 mx-auto"
+              className="w-8 h-8 text-slate-500 mx-auto"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -69,7 +69,7 @@ export default function ProfileSection({
                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
               />
             </svg>
-            <div className="text-neutral-400 text-sm mb-3">
+            <div className="text-slate-400 text-sm mb-3">
               Sign in to save your tracked users and access more features
             </div>
             <button
@@ -100,7 +100,7 @@ export default function ProfileSection({
         ) : !hasCompleteProfile ? (
           <div className="text-center space-y-3">
             <svg
-              className="w-8 h-8 text-amber-500 mx-auto"
+              className="w-8 h-8 text-purple-500 mx-auto"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -116,13 +116,13 @@ export default function ProfileSection({
               <p className="text-white text-sm font-medium mb-1">
                 Complete Your Profile
               </p>
-              <p className="text-neutral-400 text-xs mb-3">
+              <p className="text-slate-400 text-xs mb-3">
                 Set up your username and LeetCode ID
               </p>
             </div>
             <button
               onClick={onOpenProfileSetup}
-              className="bg-amber-600 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium cursor-pointer"
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium cursor-pointer"
             >
               Complete Profile
             </button>
@@ -143,12 +143,12 @@ export default function ProfileSection({
               )}
               <div>
                 <div className="text-white font-medium">{user.username}</div>
-                <div className="text-xs text-neutral-400">{user.email}</div>
+                <div className="text-xs text-slate-400">{user.email}</div>
               </div>
             </div>
             <button
               onClick={signOut}
-              className="w-full bg-neutral-600 hover:bg-neutral-700 text-white px-4 py-2 rounded-lg transition-colors text-sm cursor-pointer"
+              className="w-full bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition-colors text-sm cursor-pointer"
             >
               Sign Out
             </button>
@@ -162,15 +162,15 @@ export default function ProfileSection({
       ) : (
         user &&
         hasCompleteProfile && (
-          <div className="bg-neutral-800/50 backdrop-blur-sm p-4 rounded-lg border border-neutral-700">
+          <div className="bg-slate-800/50 backdrop-blur-sm p-4 rounded-lg border border-slate-700">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-neutral-300">
+              <h3 className="text-sm font-medium text-slate-300">
                 Your LeetCode ID
               </h3>
               {!isEditingLeetCode && (
                 <button
                   onClick={() => setIsEditingLeetCode(true)}
-                  className="text-xs text-amber-400 hover:text-orange-300 transition-colors cursor-pointer"
+                  className="text-xs text-purple-400 hover:text-purple-300 transition-colors cursor-pointer"
                 >
                   Edit
                 </button>
@@ -184,20 +184,20 @@ export default function ProfileSection({
                   value={newLeetCodeId}
                   onChange={(e) => setNewLeetCodeId(e.target.value)}
                   placeholder="Enter your LeetCode username"
-                  className="w-full px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-md text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
                 />
                 <div className="flex gap-2">
                   <button
                     onClick={handleSaveLeetCodeId}
                     disabled={isUpdatingLeetCode || !newLeetCodeId.trim()}
-                    className="flex-1 bg-amber-600 hover:bg-orange-600 disabled:bg-neutral-600 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer"
+                    className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer"
                   >
                     {isUpdatingLeetCode ? "Saving..." : "Save"}
                   </button>
                   <button
                     onClick={handleCancelLeetCodeEdit}
                     disabled={isUpdatingLeetCode}
-                    className="flex-1 bg-neutral-600 hover:bg-neutral-700 disabled:opacity-50 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer disabled:cursor-not-allowed"
+                    className="flex-1 bg-slate-600 hover:bg-slate-700 disabled:opacity-50 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer disabled:cursor-not-allowed"
                   >
                     Cancel
                   </button>
@@ -208,9 +208,7 @@ export default function ProfileSection({
                 {user?.leetcodeId ? (
                   <span className="text-sm">{user.leetcodeId}</span>
                 ) : (
-                  <span className="text-sm text-neutral-400 italic">
-                    Not set
-                  </span>
+                  <span className="text-sm text-slate-400 italic">Not set</span>
                 )}
               </div>
             )}
@@ -219,8 +217,8 @@ export default function ProfileSection({
       )}
 
       {/* Filter Settings */}
-      <div className="bg-neutral-800/50 backdrop-blur-sm p-4 rounded-lg border border-neutral-700">
-        <h3 className="text-sm font-medium text-neutral-300 mb-3">
+      <div className="bg-slate-800/50 backdrop-blur-sm p-4 rounded-lg border border-slate-700">
+        <h3 className="text-sm font-medium text-slate-300 mb-3">
           Recent Solves Filter
         </h3>
         <div className="flex gap-2">
@@ -228,8 +226,8 @@ export default function ProfileSection({
             onClick={() => onFilterModeChange("24hours")}
             className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors cursor-pointer ${
               filterMode === "24hours"
-                ? "bg-amber-600 text-white"
-                : "text-neutral-400 hover:text-white"
+                ? "bg-purple-600 text-white"
+                : "text-slate-400 hover:text-white"
             }`}
           >
             Last 24h
@@ -238,8 +236,8 @@ export default function ProfileSection({
             onClick={() => onFilterModeChange("today")}
             className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors cursor-pointer ${
               filterMode === "today"
-                ? "bg-amber-600 text-white"
-                : "text-neutral-400 hover:text-white"
+                ? "bg-purple-600 text-white"
+                : "text-slate-400 hover:text-white"
             }`}
           >
             Today
@@ -248,9 +246,9 @@ export default function ProfileSection({
       </div>
 
       {/* App Info */}
-      <div className="bg-neutral-800/50 backdrop-blur-sm p-4 rounded-lg border border-neutral-700">
-        <h3 className="text-sm font-medium text-neutral-300 mb-2">About</h3>
-        <p className="text-neutral-400 text-xs mb-3">
+      <div className="bg-slate-800/50 backdrop-blur-sm p-4 rounded-lg border border-slate-700">
+        <h3 className="text-sm font-medium text-slate-300 mb-2">About</h3>
+        <p className="text-slate-400 text-xs mb-3">
           LeetCode Stalker helps you track your friends' coding progress and
           stay motivated together.
         </p>
@@ -258,7 +256,7 @@ export default function ProfileSection({
           href="https://github.com/Om-Jadon/leetcode-stalker"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-amber-400 hover:text-orange-300 text-xs transition-colors"
+          className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 text-xs transition-colors"
         >
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
             <path

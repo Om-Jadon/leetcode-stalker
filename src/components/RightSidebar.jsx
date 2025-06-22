@@ -67,7 +67,7 @@ export default function RightSidebar({
         {/* Profile button */}
         <button
           onClick={() => onToggle("profile")}
-          className="p-2 bg-neutral-800/80 backdrop-blur-sm rounded-lg border border-neutral-700 hover:bg-neutral-700/80 transition-colors shadow-lg focus-ring touch-target cursor-pointer"
+          className="p-2 bg-slate-800/80 backdrop-blur-sm rounded-lg border border-slate-700 hover:bg-slate-700/80 transition-colors shadow-lg focus-ring touch-target cursor-pointer"
           aria-label="Open profile sidebar"
         >
           <svg
@@ -88,7 +88,7 @@ export default function RightSidebar({
         {/* Recent Solves button */}
         <button
           onClick={() => onToggle("recent-solves")}
-          className="p-2 bg-neutral-800/80 backdrop-blur-sm rounded-lg border border-neutral-700 hover:bg-neutral-700/80 transition-colors shadow-lg focus-ring touch-target cursor-pointer"
+          className="p-2 bg-slate-800/80 backdrop-blur-sm rounded-lg border border-slate-700 hover:bg-slate-700/80 transition-colors shadow-lg focus-ring touch-target cursor-pointer"
           aria-label="Open recent solves sidebar"
         >
           <svg
@@ -109,7 +109,7 @@ export default function RightSidebar({
         {/* Question of the Day button */}
         <button
           onClick={() => onToggle("qotd")}
-          className="p-2 bg-neutral-800/80 backdrop-blur-sm rounded-lg border border-neutral-700 hover:bg-neutral-700/80 transition-colors shadow-lg focus-ring touch-target cursor-pointer"
+          className="p-2 bg-slate-800/80 backdrop-blur-sm rounded-lg border border-slate-700 hover:bg-slate-700/80 transition-colors shadow-lg focus-ring touch-target cursor-pointer"
           aria-label="Open question of the day sidebar"
         >
           <svg
@@ -142,7 +142,7 @@ export default function RightSidebar({
 
       {/* Sidebar */}
       <div
-        className={`fixed right-0 top-0 h-full bg-neutral-900 border-l border-neutral-700 z-40 flex flex-col transition-transform duration-300 ease-in-out ${
+        className={`fixed right-0 top-0 h-full bg-slate-900 border-l border-slate-700 z-40 flex flex-col transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "translate-x-full"
         } ${
           /* Responsive width */
@@ -150,11 +150,11 @@ export default function RightSidebar({
         }`}
       >
         {/* Header */}
-        <div className="p-4 border-b border-neutral-700 flex items-center justify-between">
+        <div className="p-4 border-b border-slate-700 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-white">{getTitle()}</h2>
           <button
             onClick={onClose || (() => onToggle())}
-            className="p-1 text-neutral-400 hover:text-white transition-colors focus-ring touch-target cursor-pointer"
+            className="p-1 text-slate-400 hover:text-white transition-colors focus-ring touch-target cursor-pointer"
             aria-label="Close sidebar"
           >
             <svg

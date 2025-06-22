@@ -330,7 +330,7 @@ export default function LeftSidebar({
       typeof msg.timestamp === "number" ? msg.timestamp : Date.now();
 
     const baseClasses = `max-w-xs lg:max-w-sm px-3 py-2 rounded-lg ${
-      isFromMe ? "bg-amber-600 text-white" : "bg-neutral-700 text-neutral-100"
+      isFromMe ? "bg-purple-600 text-white" : "bg-slate-700 text-slate-100"
     }`;
 
     const content = (() => {
@@ -404,7 +404,7 @@ export default function LeftSidebar({
     return (
       <button
         onClick={onToggle}
-        className="fixed left-4 top-4 z-40 p-2 bg-neutral-800 rounded-lg border border-neutral-700 hover:bg-neutral-700 transition-colors cursor-pointer"
+        className="fixed left-4 top-4 z-40 p-2 bg-slate-800 rounded-lg border border-slate-700 hover:bg-slate-700 transition-colors cursor-pointer"
       >
         <svg
           className="w-5 h-5 text-white"
@@ -435,7 +435,7 @@ export default function LeftSidebar({
 
       {/* Sidebar */}
       <div
-        className={`fixed left-0 top-0 h-full bg-neutral-900 border-r border-neutral-700 z-40 flex flex-col transition-transform duration-300 ease-in-out ${
+        className={`fixed left-0 top-0 h-full bg-slate-900 border-r border-slate-700 z-40 flex flex-col transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } w-full max-w-sm md:w-96`}
       >
@@ -472,7 +472,7 @@ export default function LeftSidebar({
           <div className="flex-1 flex items-center justify-center p-4">
             <div className="text-center space-y-4">
               <LargeSpinnerSkeleton />
-              <p className="text-neutral-400 text-sm">Loading...</p>
+              <p className="text-slate-400 text-sm">Loading...</p>
             </div>
           </div>
         ) : !user ? (
@@ -483,7 +483,7 @@ export default function LeftSidebar({
               </p>
               <button
                 onClick={signInWithGoogle}
-                className="bg-amber-600 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition-colors cursor-pointer"
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors cursor-pointer"
               >
                 Sign in with Google
               </button>
@@ -493,7 +493,7 @@ export default function LeftSidebar({
           <div className="flex-1 flex items-center justify-center p-4">
             <div className="text-center space-y-4">
               <svg
-                className="w-12 h-12 text-amber-500 mx-auto"
+                className="w-12 h-12 text-purple-500 mx-auto"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -509,13 +509,13 @@ export default function LeftSidebar({
                 <p className="text-white mb-2 font-medium">
                   Complete Your Profile
                 </p>
-                <p className="text-neutral-400 text-sm mb-4">
+                <p className="text-slate-400 text-sm mb-4">
                   Set up your username and LeetCode ID to access chat features
                 </p>
               </div>
               <button
                 onClick={onOpenProfileSetup}
-                className="bg-amber-600 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-colors font-medium cursor-pointer"
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition-colors font-medium cursor-pointer"
               >
                 Complete Profile
               </button>
@@ -525,10 +525,10 @@ export default function LeftSidebar({
           // Chat View
           <div className="flex-1 flex flex-col min-h-0">
             {/* Back button and friend info */}
-            <div className="p-3 border-b border-neutral-700">
+            <div className="p-3 border-b border-slate-700">
               <button
                 onClick={goBackToFriends}
-                className="text-amber-400 hover:text-amber-300 text-sm flex items-center gap-2 cursor-pointer mb-2"
+                className="text-purple-400 hover:text-purple-300 text-sm flex items-center gap-2 cursor-pointer mb-2"
               >
                 <svg
                   className="w-4 h-4"
@@ -546,7 +546,7 @@ export default function LeftSidebar({
                 Back to friends
               </button>
               {selectedFriend.leetcodeId && (
-                <div className="text-xs text-neutral-400 pl-6">
+                <div className="text-xs text-slate-400 pl-6">
                   LeetCode: {selectedFriend.leetcodeId}
                 </div>
               )}
@@ -559,7 +559,7 @@ export default function LeftSidebar({
               style={{ minHeight: "100px" }}
             >
               {chatMessages.length === 0 ? (
-                <div className="text-center text-neutral-400 mt-8">
+                <div className="text-center text-slate-400 mt-8">
                   <p>No messages yet. Start the conversation!</p>
                 </div>
               ) : (
@@ -569,7 +569,7 @@ export default function LeftSidebar({
             </div>
 
             {/* Quick Actions */}
-            <div className="px-4 py-2 border-t border-neutral-700">
+            <div className="px-4 py-2 border-t border-slate-700">
               <div className="flex gap-2 text-xs">
                 <button
                   onClick={shareProblem}
@@ -595,7 +595,7 @@ export default function LeftSidebar({
                       "Want to do a daily challenge together? 🤝"
                     )
                   }
-                  className="flex items-center gap-1 px-2 py-1 bg-neutral-600 hover:bg-neutral-500 text-white rounded transition-colors text-xs"
+                  className="flex items-center gap-1 px-2 py-1 bg-slate-600 hover:bg-slate-500 text-white rounded transition-colors text-xs"
                 >
                   Daily?
                 </button>
@@ -603,7 +603,7 @@ export default function LeftSidebar({
                   onClick={() =>
                     sendQuickMessage("Stuck on a problem? Need help? 🤔")
                   }
-                  className="flex items-center gap-1 px-2 py-1 bg-neutral-600 hover:bg-neutral-500 text-white rounded transition-colors text-xs"
+                  className="flex items-center gap-1 px-2 py-1 bg-slate-600 hover:bg-slate-500 text-white rounded transition-colors text-xs"
                 >
                   Help?
                 </button>
@@ -611,7 +611,7 @@ export default function LeftSidebar({
                   onClick={() =>
                     sendQuickMessage("Great job on your recent solves! 👏")
                   }
-                  className="flex items-center gap-1 px-2 py-1 bg-neutral-600 hover:bg-neutral-500 text-white rounded transition-colors text-xs"
+                  className="flex items-center gap-1 px-2 py-1 bg-slate-600 hover:bg-slate-500 text-white rounded transition-colors text-xs"
                 >
                   Congrats!
                 </button>
@@ -621,7 +621,7 @@ export default function LeftSidebar({
                       "Check out my latest progress on LeetCode! 📊"
                     )
                   }
-                  className="flex items-center gap-1 px-2 py-1 bg-neutral-600 hover:bg-neutral-500 text-white rounded transition-colors text-xs"
+                  className="flex items-center gap-1 px-2 py-1 bg-slate-600 hover:bg-slate-500 text-white rounded transition-colors text-xs"
                 >
                   My Stats
                 </button>
@@ -629,7 +629,7 @@ export default function LeftSidebar({
             </div>
 
             {/* Message input */}
-            <div className="p-4 border-t border-neutral-700">
+            <div className="p-4 border-t border-slate-700">
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -637,12 +637,12 @@ export default function LeftSidebar({
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Type a message..."
-                  className="flex-1 px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
                 <button
                   onClick={sendMessage}
                   disabled={!newMessage.trim()}
-                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-neutral-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
                 >
                   <svg
                     className="w-4 h-4"
@@ -665,14 +665,14 @@ export default function LeftSidebar({
           // Friends/Search/Requests View
           <div className="flex-1 flex flex-col">
             {/* Tab Navigation */}
-            <div className="p-3 border-b border-neutral-700">
-              <div className="flex space-x-1 bg-neutral-800 rounded-lg p-1">
+            <div className="p-3 border-b border-slate-700">
+              <div className="flex space-x-1 bg-slate-800 rounded-lg p-1">
                 <button
                   onClick={() => setActiveTab("friends")}
                   className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors cursor-pointer ${
                     activeTab === "friends"
-                      ? "bg-amber-600 text-white"
-                      : "text-neutral-400 hover:text-white hover:bg-neutral-700"
+                      ? "bg-purple-600 text-white"
+                      : "text-slate-400 hover:text-white hover:bg-slate-700"
                   }`}
                 >
                   Friends
@@ -681,8 +681,8 @@ export default function LeftSidebar({
                   onClick={() => setActiveTab("search")}
                   className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors cursor-pointer ${
                     activeTab === "search"
-                      ? "bg-amber-600 text-white"
-                      : "text-neutral-400 hover:text-white hover:bg-neutral-700"
+                      ? "bg-purple-600 text-white"
+                      : "text-slate-400 hover:text-white hover:bg-slate-700"
                   }`}
                 >
                   Search
@@ -691,8 +691,8 @@ export default function LeftSidebar({
                   onClick={() => setActiveTab("requests")}
                   className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors relative cursor-pointer ${
                     activeTab === "requests"
-                      ? "bg-amber-600 text-white"
-                      : "text-neutral-400 hover:text-white hover:bg-neutral-700"
+                      ? "bg-purple-600 text-white"
+                      : "text-slate-400 hover:text-white hover:bg-slate-700"
                   }`}
                 >
                   Requests
@@ -711,7 +711,7 @@ export default function LeftSidebar({
               {activeTab === "friends" && (
                 <div className="p-4">
                   {friends.length === 0 ? (
-                    <div className="text-center text-neutral-400 mt-8">
+                    <div className="text-center text-slate-400 mt-8">
                       <p>No friends yet. Search for users to add them!</p>
                     </div>
                   ) : (
@@ -720,20 +720,20 @@ export default function LeftSidebar({
                         <div
                           key={friend.id}
                           onClick={() => openChat(friend)}
-                          className="p-3 bg-neutral-800 hover:bg-neutral-700 rounded-lg cursor-pointer transition-colors flex items-center justify-between"
+                          className="p-3 bg-slate-800 hover:bg-slate-700 rounded-lg cursor-pointer transition-colors flex items-center justify-between"
                         >
                           <div>
                             <p className="text-white font-medium">
                               {friend.username}
                             </p>
                             {friend.leetcodeId && (
-                              <p className="text-neutral-400 text-sm">
+                              <p className="text-slate-400 text-sm">
                                 LeetCode: {friend.leetcodeId}
                               </p>
                             )}
                           </div>
                           <svg
-                            className="w-5 h-5 text-neutral-400"
+                            className="w-5 h-5 text-slate-400"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -771,12 +771,12 @@ export default function LeftSidebar({
                           setTimeout(() => setShowSuggestions(false), 150)
                         }
                         placeholder="Search by username..."
-                        className="flex-1 px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-lg text-white placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
                       <button
                         onClick={handleSearch}
                         disabled={isSearching}
-                        className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-neutral-600 text-white rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-slate-600 text-white rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
                       >
                         {isSearching ? "..." : "Search"}
                       </button>
@@ -784,18 +784,18 @@ export default function LeftSidebar({
 
                     {/* Suggestions */}
                     {showSuggestions && suggestions.length > 0 && (
-                      <div className="absolute top-full left-0 right-16 z-50 mt-1 bg-neutral-800 border border-neutral-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      <div className="absolute top-full left-0 right-16 z-50 mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                         {suggestions.map((suggestion) => (
                           <div
                             key={suggestion.id}
                             onClick={() => selectSuggestion(suggestion)}
-                            className="p-3 hover:bg-neutral-700 cursor-pointer border-b border-neutral-700 last:border-b-0"
+                            className="p-3 hover:bg-slate-700 cursor-pointer border-b border-slate-700 last:border-b-0"
                           >
                             <div className="text-white text-sm">
                               {suggestion.username}
                             </div>
                             {suggestion.leetcodeId && (
-                              <div className="text-neutral-400 text-xs">
+                              <div className="text-slate-400 text-xs">
                                 LeetCode: {suggestion.leetcodeId}
                               </div>
                             )}
@@ -810,19 +810,19 @@ export default function LeftSidebar({
                     {searchResults.map((result) => (
                       <div
                         key={result.id}
-                        className="p-3 bg-neutral-800 rounded-lg flex items-center justify-between"
+                        className="p-3 bg-slate-800 rounded-lg flex items-center justify-between"
                       >
                         <div>
                           <p className="text-white">{result.username}</p>
                           {result.leetcodeId && (
-                            <p className="text-neutral-400 text-sm">
+                            <p className="text-slate-400 text-sm">
                               LeetCode: {result.leetcodeId}
                             </p>
                           )}
                         </div>
                         <button
                           onClick={() => sendFriendRequest(result.id)}
-                          className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white text-sm rounded transition-colors cursor-pointer"
+                          className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded transition-colors cursor-pointer"
                         >
                           Add Friend
                         </button>
@@ -836,7 +836,7 @@ export default function LeftSidebar({
               {activeTab === "requests" && (
                 <div className="p-4">
                   {friendRequests.length === 0 ? (
-                    <div className="text-center text-neutral-400 mt-8">
+                    <div className="text-center text-slate-400 mt-8">
                       <p>No pending friend requests</p>
                     </div>
                   ) : (
@@ -844,14 +844,14 @@ export default function LeftSidebar({
                       {friendRequests.map((request) => (
                         <div
                           key={request.id}
-                          className="p-3 bg-neutral-800 rounded-lg"
+                          className="p-3 bg-slate-800 rounded-lg"
                         >
                           <div className="mb-3">
                             <p className="text-white font-medium">
                               {request.fromUser.username}
                             </p>
                             {request.fromUser.leetcodeId && (
-                              <p className="text-neutral-400 text-sm">
+                              <p className="text-slate-400 text-sm">
                                 LeetCode: {request.fromUser.leetcodeId}
                               </p>
                             )}

@@ -56,7 +56,7 @@
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, #374151 0%, #4b5563 50%, #374151 100%);
+  background: linear-gradient(90deg, #475569 0%, #6b7280 50%, #475569 100%);
   background-size: 200px 100%;
   animation: shimmer 1.5s infinite;
 }
@@ -141,26 +141,26 @@
 /* Focus styles for accessibility */
 .focus-ring:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5),
-    0 0 0 4px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.5),
+    0 0 0 4px rgba(168, 85, 247, 0.2);
 }
 
 /* Improved glass morphism effects */
 .glass-morphism {
-  background: rgba(31, 41, 55, 0.8);
+  background: rgba(30, 41, 59, 0.8);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(75, 85, 99, 0.3);
+  border: 1px solid rgba(100, 116, 139, 0.3);
 }
 
 .glass-morphism-light {
-  background: rgba(55, 65, 81, 0.6);
+  background: rgba(51, 65, 85, 0.6);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(107, 114, 128, 0.2);
+  border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -168,11 +168,11 @@
 
 /* Enhanced shadows */
 .shadow-glow {
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.2);
 }
 
 .shadow-glow-lg {
-  box-shadow: 0 0 40px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 40px rgba(168, 85, 247, 0.3);
 }
 
 /* Smooth card animations */
@@ -190,9 +190,9 @@
 .skeleton {
   background: linear-gradient(
     90deg,
-    rgba(55, 65, 81, 0.8) 25%,
-    rgba(75, 85, 99, 0.8) 50%,
-    rgba(55, 65, 81, 0.8) 75%
+    rgba(51, 65, 85, 0.8) 25%,
+    rgba(100, 116, 139, 0.8) 50%,
+    rgba(51, 65, 85, 0.8) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;

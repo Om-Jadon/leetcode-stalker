@@ -23,10 +23,10 @@ export default function AddFriendForm({
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-3 glass-morphism-light p-3 md:p-4 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-amber-500/50 focus-within:border-amber-500/50 transition-all duration-200">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-3 glass-morphism-light p-3 md:p-4 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-purple-500/50 focus-within:border-purple-500/50 transition-all duration-200">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <svg
-            className="h-5 w-5 md:h-6 md:w-6 text-neutral-400 shrink-0"
+            className="h-5 w-5 md:h-6 md:w-6 text-slate-400 shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -42,7 +42,7 @@ export default function AddFriendForm({
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder={placeholder}
-            className="flex-1 min-w-0 border-0 focus:ring-0 p-0 text-white placeholder-neutral-400 bg-transparent text-sm md:text-base"
+            className="flex-1 min-w-0 border-0 focus:ring-0 p-0 text-white placeholder-slate-400 bg-transparent text-sm md:text-base"
             disabled={isSubmitting}
             autoComplete="off"
           />
@@ -52,8 +52,8 @@ export default function AddFriendForm({
           disabled={!username.trim() || isSubmitting}
           className={`px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-medium text-sm md:text-base transition-all duration-150 shrink-0 focus-ring touch-target ${
             !username.trim() || isSubmitting
-              ? "bg-neutral-600 cursor-not-allowed text-neutral-400"
-              : "bg-amber-600 hover:bg-orange-600 text-white btn-hover-scale shadow-glow cursor-pointer"
+              ? "bg-slate-600 cursor-not-allowed text-slate-400"
+              : "bg-purple-600 hover:bg-purple-700 text-white btn-hover-scale shadow-glow cursor-pointer"
           }`}
         >
           {isSubmitting ? (

@@ -42,10 +42,10 @@ const getDifficultyColors = (difficulty) => {
       };
     default:
       return {
-        bg: "bg-neutral-700",
-        border: "border-neutral-600",
-        text: "text-neutral-300",
-        badge: "bg-neutral-600 text-neutral-300",
+        bg: "bg-slate-700",
+        border: "border-slate-600",
+        text: "text-slate-300",
+        badge: "bg-slate-600 text-slate-300",
       };
   }
 };
@@ -69,7 +69,7 @@ export default function FriendCard({
 
   if (hasError) {
     return (
-      <div className="bg-neutral-800 rounded-xl shadow-md overflow-hidden border border-red-700/50 min-h-[350px] sm:min-h-[400px] relative group">
+      <div className="bg-slate-800 rounded-xl shadow-md overflow-hidden border border-red-700/50 min-h-[350px] sm:min-h-[400px] relative group">
         <div className="p-6 sm:p-8 flex flex-col items-center justify-center h-full text-center">
           <svg
             className="h-12 w-12 sm:h-16 sm:w-16 text-red-400 mb-4"
@@ -87,18 +87,18 @@ export default function FriendCard({
           <h3 className="text-lg sm:text-xl font-bold text-red-300 mb-2">
             {user}
           </h3>
-          <p className="text-sm sm:text-base text-neutral-400 mb-4">
+          <p className="text-sm sm:text-base text-slate-400 mb-4">
             Failed to load stats
           </p>
           <button
             onClick={onRetry}
-            className="bg-amber-600 hover:bg-orange-600 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 text-sm sm:text-base cursor-pointer"
+            className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 text-sm sm:text-base cursor-pointer"
           >
             Try Again
           </button>
           <button
             onClick={onRemove}
-            className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1 rounded-full bg-neutral-700 text-neutral-400 hover:bg-red-600 hover:text-white transition-colors duration-200 cursor-pointer"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1 rounded-full bg-slate-700 text-slate-400 hover:bg-red-600 hover:text-white transition-colors duration-200 cursor-pointer"
             aria-label="Remove user"
           >
             <svg
@@ -122,11 +122,11 @@ export default function FriendCard({
   }
 
   return (
-    <div className="glass-morphism rounded-xl shadow-md overflow-hidden card-hover border border-neutral-700/50 min-h-[300px] md:min-h-[350px] lg:min-h-[400px] relative group">
+    <div className="glass-morphism rounded-xl shadow-md overflow-hidden card-hover border border-slate-700/50 min-h-[300px] md:min-h-[350px] lg:min-h-[400px] relative group">
       {showRemoveButton && (
         <button
           onClick={onRemove}
-          className="absolute top-2 right-2 md:top-3 md:right-3 lg:top-4 lg:right-4 p-1.5 rounded-full bg-neutral-700/80 backdrop-blur-sm text-neutral-400 hover:bg-red-600 hover:text-white transition-all duration-200 opacity-0 group-hover:opacity-100 focus:opacity-100 focus-ring touch-target z-10 cursor-pointer"
+          className="absolute top-2 right-2 md:top-3 md:right-3 lg:top-4 lg:right-4 p-1.5 rounded-full bg-slate-700/80 backdrop-blur-sm text-slate-400 hover:bg-red-600 hover:text-white transition-all duration-200 opacity-0 group-hover:opacity-100 focus:opacity-100 focus-ring touch-target z-10 cursor-pointer"
           aria-label="Remove user"
         >
           <svg
@@ -154,7 +154,7 @@ export default function FriendCard({
                 {user}
               </h2>
               {isOwnCard && (
-                <span className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs px-2 py-1 rounded-full font-medium shadow-glow shrink-0">
+                <span className="bg-gradient-to-r from-purple-500 to-purple-600 text-white text-xs px-2 py-1 rounded-full font-medium shadow-glow shrink-0">
                   You
                 </span>
               )}
@@ -163,7 +163,7 @@ export default function FriendCard({
               href={`https://leetcode.com/${user}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs md:text-sm text-amber-400 hover:text-orange-300 hover:underline transition-colors"
+              className="text-xs md:text-sm text-purple-400 hover:text-purple-300 hover:underline transition-colors"
             >
               View Profile →
             </a>
@@ -198,8 +198,8 @@ export default function FriendCard({
         </div>
 
         <div className="space-y-4 sm:space-y-5">
-          <div className="flex justify-between items-center bg-neutral-700/50 rounded-lg p-3 sm:p-4">
-            <span className="text-sm sm:text-base font-semibold text-neutral-300">
+          <div className="flex justify-between items-center bg-slate-700/50 rounded-lg p-3 sm:p-4">
+            <span className="text-sm sm:text-base font-semibold text-slate-300">
               Total Solved
             </span>
             <span className="font-bold text-white text-xl sm:text-2xl">
@@ -218,9 +218,9 @@ export default function FriendCard({
 
         {/* 3:5:2 Ratio Recommendations */}
         {stats.mediumSolved > 0 && (
-          <div className="mt-2 sm:mt-3 pt-2 border-t border-neutral-700/50">
+          <div className="mt-2 sm:mt-3 pt-2 border-t border-slate-700/50">
             <div className="mb-1">
-              <h3 className="text-xs font-medium text-neutral-300">
+              <h3 className="text-xs font-medium text-slate-300">
                 Suggested Ratio Balance (3:5:2)
               </h3>
             </div>
@@ -386,15 +386,15 @@ export default function FriendCard({
         )}
 
         {stats.recentProblemsForDisplay?.length > 0 && (
-          <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-neutral-700">
+          <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-slate-700">
             <div className="flex items-center justify-between mb-2 sm:mb-3">
-              <h3 className="text-xs sm:text-sm font-semibold text-neutral-300">
+              <h3 className="text-xs sm:text-sm font-semibold text-slate-300">
                 Recently Solved
               </h3>
               {stats.recentProblems?.length > 3 && (
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="text-xs sm:text-sm text-amber-400 hover:text-orange-300 font-medium flex items-center gap-1 transition-colors btn-hover-scale"
+                  className="text-xs sm:text-sm text-purple-400 hover:text-purple-300 font-medium flex items-center gap-1 transition-colors btn-hover-scale"
                 >
                   View All ({stats.recentProblems.length})
                   <svg
@@ -432,11 +432,11 @@ export default function FriendCard({
                       href={problemUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`block p-3 sm:p-4 rounded-lg hover:bg-neutral-600 transition-colors duration-150 cursor-pointer border ${colors.bg} ${colors.border} hover:border-neutral-500`}
+                      className={`block p-3 sm:p-4 rounded-lg hover:bg-slate-600 transition-colors duration-150 cursor-pointer border ${colors.bg} ${colors.border} hover:border-slate-500`}
                     >
                       <div className="flex items-center justify-between mb-1 sm:mb-2">
                         <div
-                          className={`text-sm sm:text-base font-semibold truncate hover:text-amber-300 transition-colors ${colors.text} pr-2`}
+                          className={`text-sm sm:text-base font-semibold truncate hover:text-purple-300 transition-colors ${colors.text} pr-2`}
                         >
                           {title}
                         </div>
@@ -449,7 +449,7 @@ export default function FriendCard({
                         )}
                       </div>
                       {typeof problem === "object" && problem.timestamp && (
-                        <div className="text-xs sm:text-sm text-neutral-300 font-medium">
+                        <div className="text-xs sm:text-sm text-slate-300 font-medium">
                           {formatToIST(problem.timestamp)}
                         </div>
                       )}

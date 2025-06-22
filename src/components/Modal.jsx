@@ -34,13 +34,13 @@ export default function Modal({ isOpen, onClose, title, children }) {
       <div className="flex min-h-full items-center justify-center p-2 md:p-4">
         <div className="relative w-full max-w-sm md:max-w-2xl max-h-[95vh] md:max-h-[90vh] transform overflow-hidden rounded-xl glass-morphism shadow-glow-lg transition-all modal-content">
           {/* Header */}
-          <div className="flex items-center justify-between p-3 md:p-4 lg:p-6 border-b border-neutral-700/50">
+          <div className="flex items-center justify-between p-3 md:p-4 lg:p-6 border-b border-slate-700/50">
             <h2 className="text-base md:text-lg lg:text-xl font-bold text-white truncate pr-4">
               {title}
             </h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-700/50 transition-colors btn-hover-scale focus-ring touch-target shrink-0 cursor-pointer"
+              className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors btn-hover-scale focus-ring touch-target shrink-0 cursor-pointer"
               aria-label="Close modal"
             >
               <svg

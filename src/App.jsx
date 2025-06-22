@@ -316,19 +316,19 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-900 via-amber-900 to-neutral-900 relative overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-x-hidden">
       {/* Full Page Loading Screen */}
       {authLoading && (
-        <div className="fixed inset-0 bg-gradient-to-br from-neutral-900 via-amber-900 to-neutral-900 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 z-50 flex items-center justify-center">
           <div className="text-center space-y-6">
             <div className="w-16 h-16 mx-auto">
-              <div className="w-16 h-16 border-4 border-amber-200/20 border-t-amber-400 rounded-full animate-spin"></div>
+              <div className="w-16 h-16 border-4 border-purple-200/20 border-t-purple-400 rounded-full animate-spin"></div>
             </div>
             <div className="space-y-2">
               <h2 className="text-2xl font-bold text-white">
                 LeetCode Stalker
               </h2>
-              <p className="text-neutral-300">Loading your coding journey...</p>
+              <p className="text-slate-300">Loading your coding journey...</p>
             </div>
           </div>
         </div>
@@ -372,7 +372,7 @@ export default function App() {
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold gradient-text mb-2">
               LeetCode Stalker
             </h1>
-            <p className="text-base md:text-lg text-neutral-300 mb-6 lg:mb-8">
+            <p className="text-base md:text-lg text-slate-300 mb-6 lg:mb-8">
               Stalk them up, Bring them down
             </p>
 
@@ -389,8 +389,8 @@ export default function App() {
                 disabled={isLoading || usernames.length === 0}
                 className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors btn-hover-scale focus-ring touch-target min-w-[120px] ${
                   isLoading || usernames.length === 0
-                    ? "bg-neutral-400 cursor-not-allowed"
-                    : "bg-amber-600 hover:bg-orange-600 cursor-pointer"
+                    ? "bg-slate-400 cursor-not-allowed"
+                    : "bg-purple-600 hover:bg-purple-700 cursor-pointer"
                 } text-white font-medium px-4 py-2.5 rounded-lg shadow-md transition-all`}
                 title={
                   timeUntilRefresh
@@ -453,7 +453,7 @@ export default function App() {
             <div className="text-center py-12 md:py-20 glass-morphism rounded-xl mx-2 md:mx-4">
               <div className="max-w-md mx-auto px-4">
                 <svg
-                  className="mx-auto h-10 w-10 md:h-12 md:w-12 text-neutral-400 mb-4"
+                  className="mx-auto h-10 w-10 md:h-12 md:w-12 text-slate-400 mb-4"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -468,7 +468,7 @@ export default function App() {
                 <h3 className="text-lg md:text-xl font-medium text-white mb-2">
                   No users tracked yet
                 </h3>
-                <p className="text-neutral-400 text-sm md:text-base">
+                <p className="text-slate-400 text-sm md:text-base">
                   Add LeetCode usernames to track their progress
                 </p>
                 {!user && (

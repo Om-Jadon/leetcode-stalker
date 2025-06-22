@@ -39,10 +39,10 @@ const getDifficultyColors = (difficulty) => {
       };
     default:
       return {
-        bg: "bg-neutral-700",
-        border: "border-neutral-600",
-        text: "text-neutral-300",
-        badge: "bg-neutral-600 text-neutral-300",
+        bg: "bg-slate-700",
+        border: "border-slate-600",
+        text: "text-slate-300",
+        badge: "bg-slate-600 text-slate-300",
       };
   }
 };
@@ -70,7 +70,7 @@ export default function RecentSolvesSection({ usernames, statsMap }) {
   return (
     <div className="space-y-2 h-full overflow-y-auto">
       {displayProblems.length === 0 ? (
-        <p className="text-neutral-400 text-sm text-center py-8">
+        <p className="text-slate-400 text-sm text-center py-8">
           No recent solves found
         </p>
       ) : (
@@ -79,7 +79,7 @@ export default function RecentSolvesSection({ usernames, statsMap }) {
           return (
             <div
               key={`${problem.username}-${problem.title}-${index}`}
-              className={`p-3 rounded-lg border ${colors.bg} ${colors.border} hover:bg-neutral-600/50 transition-colors`}
+              className={`p-3 rounded-lg border ${colors.bg} ${colors.border} hover:bg-slate-600/50 transition-colors`}
             >
               <div className="flex items-start justify-between gap-2 mb-2">
                 <h4 className="text-white text-sm font-medium leading-tight flex-1">
@@ -92,10 +92,10 @@ export default function RecentSolvesSection({ usernames, statsMap }) {
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-neutral-300 text-xs">
+                <span className="text-slate-300 text-xs">
                   by {problem.username}
                 </span>
-                <span className="text-neutral-400 text-xs">
+                <span className="text-slate-400 text-xs">
                   {formatToIST(problem.timestamp)}
                 </span>
               </div>

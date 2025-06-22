@@ -30,10 +30,10 @@ const getDifficultyColors = (difficulty) => {
       };
     default:
       return {
-        bg: "bg-neutral-700",
-        border: "border-neutral-600",
-        text: "text-neutral-300",
-        badge: "bg-neutral-600 text-neutral-300",
+        bg: "bg-slate-700",
+        border: "border-slate-600",
+        text: "text-slate-300",
+        badge: "bg-slate-600 text-slate-300",
       };
   }
 };
@@ -91,12 +91,12 @@ export default function QuestionOfTheDaySection({ usernames, refreshTrigger }) {
       <div className="h-full">
         {isLoadingQOTD ? (
           <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-400"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-400"></div>
           </div>
         ) : qotdError ? (
           <p className="text-red-400 text-sm text-center py-4">{qotdError}</p>
         ) : (
-          <p className="text-neutral-400 text-sm text-center py-4">
+          <p className="text-slate-400 text-sm text-center py-4">
             No daily challenge found
           </p>
         )}
@@ -128,7 +128,7 @@ export default function QuestionOfTheDaySection({ usernames, refreshTrigger }) {
         </div>
 
         <div className="flex items-center justify-between mb-3">
-          <span className="text-neutral-300 text-xs">
+          <span className="text-slate-300 text-xs">
             Problem #{dailyChallenge.question.frontendQuestionId}
           </span>
           {dailyChallenge.link && (
@@ -136,14 +136,14 @@ export default function QuestionOfTheDaySection({ usernames, refreshTrigger }) {
               href={dailyChallenge.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-amber-400 hover:text-orange-300 text-xs transition-colors"
+              className="text-purple-400 hover:text-purple-300 text-xs transition-colors"
             >
               View Problem →
             </a>
           )}
         </div>
 
-        <div className="text-neutral-400 text-xs leading-relaxed">
+        <div className="text-slate-400 text-xs leading-relaxed">
           {dailyChallenge.question.content ? (
             <div
               dangerouslySetInnerHTML={{
