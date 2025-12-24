@@ -1,4 +1,4 @@
-const endpoint = "/api/graphql";
+const endpoint = "/graphql";
 
 // Query to fetch daily challenge
 const dailyChallengeQuery = `
