@@ -59,25 +59,30 @@ export default function QuestionOfTheDayBox({ usernames, refreshTrigger }) {
         const challenge = await fetchDailyChallenge();
         setDailyChallenge(challenge);
 
-        // Check which users have solved it
+        // Check which users have solved it (sequentially with delay to avoid rate limiting)
         if (usernames.length > 0 && challenge.question.titleSlug) {
-          const solveStatuses = await Promise.all(
-            usernames.map(async (username) => {
-              try {
-                const hasSolved = await checkUserSolvedProblem(
-                  username,
-                  challenge.question.titleSlug
-                );
-                return [username, hasSolved];
-              } catch (error) {
-                console.error(
-                  `Error checking solve status for ${username}:`,
-                  error
-                );
-                return [username, false];
+          const solveStatuses = [];
+
+          for (const username of usernames) {
+            try {
+              const hasSolved = await checkUserSolvedProblem(
+                username,
+                challenge.question.titleSlug
+              );
+              solveStatuses.push([username, hasSolved]);
+
+              // Add a small delay between requests to avoid rate limiting
+              if (usernames.indexOf(username) < usernames.length - 1) {
+                await new Promise((resolve) => setTimeout(resolve, 200));
               }
-            })
-          );
+            } catch (error) {
+              console.error(
+                `Error checking solve status for ${username}:`,
+                error
+              );
+              solveStatuses.push([username, false]);
+            }
+          }
 
           setUserSolveStatus(Object.fromEntries(solveStatuses));
         }

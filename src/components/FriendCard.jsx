@@ -201,6 +201,19 @@ export default function FriendCard({
               {stats.recentSolved || 0}
             </span>
           </div>
+
+          {/* Longest Streak */}
+          <div className="flex justify-between items-center bg-purple-900/30 rounded-lg p-3 sm:p-4 border border-purple-800">
+            <span className="text-sm sm:text-base font-semibold text-purple-300">
+              Longest Streak
+            </span>
+            <div className="flex items-baseline">
+              <span className="font-bold text-purple-200 text-lg sm:text-xl">
+                {stats.longestStreak || 0}
+              </span>
+              <span className="text-sm text-purple-400 ml-1">days</span>
+            </div>
+          </div>
         </div>
 
         {/* 3:5:2 Ratio Recommendations */}

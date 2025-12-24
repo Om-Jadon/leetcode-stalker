@@ -70,7 +70,26 @@ export default function App() {
 
   useEffect(() => {
     if (usernames.length > 0) {
-      reloadAll();
+      // Stagger initial loading to avoid overwhelming the API
+      const loadUsersSequentially = async () => {
+        setIsLoading(true);
+        setLoadingUsers(new Set(usernames));
+
+        for (let i = 0; i < usernames.length; i++) {
+          const username = usernames[i];
+          await loadStats(username, filterMode);
+
+          // Add delay between users (except for the last one)
+          if (i < usernames.length - 1) {
+            await new Promise((resolve) => setTimeout(resolve, 250));
+          }
+        }
+
+        setIsLoading(false);
+        setLoadingUsers(new Set());
+      };
+
+      loadUsersSequentially();
     }
     const interval = setInterval(() => {
       if (usernames.length > 0) {

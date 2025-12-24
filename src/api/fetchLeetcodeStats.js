@@ -29,6 +29,27 @@ const dailyChallengeQuery = `
   }
 `;
 
+// Combined query to fetch user stats, calendar, and recent submissions in one request
+const combinedUserQuery = `
+  query userStatsAndSubmissions($username: String!, $limit: Int!) {
+    matchedUser(username: $username) {
+      submitStats {
+        acSubmissionNum {
+          difficulty
+          count
+        }
+      }
+      submissionCalendar
+    }
+    recentAcSubmissionList(username: $username, limit: $limit) {
+      id
+      title
+      timestamp
+      titleSlug
+    }
+  }
+`;
+
 const statsQuery = `
   query userStats($username: String!) {
     matchedUser(username: $username) {
@@ -38,6 +59,7 @@ const statsQuery = `
           count
         }
       }
+      submissionCalendar
     }
   }
 `;
@@ -73,37 +95,32 @@ const userExistsQuery = `
 export async function fetchLeetcodeStats(username, filterMode = "24hours") {
   const headers = { "Content-Type": "application/json" };
 
-  const [statsRes, subsRes] = await Promise.all([
-    fetch(endpoint, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ query: statsQuery, variables: { username } }),
+  // Single combined request for all user data
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      query: combinedUserQuery,
+      variables: { username, limit: 100 },
     }),
-    fetch(endpoint, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        query: subsQuery,
-        variables: { username, limit: 100 },
-      }),
-    }),
-  ]);
+  });
 
-  if (!statsRes.ok || !subsRes.ok) {
+  if (!response.ok) {
     throw new Error("Failed to fetch stats");
   }
 
-  const statsData = await statsRes.json();
-  const subsData = await subsRes.json();
+  const data = await response.json();
 
-  const acList =
-    statsData.data?.matchedUser?.submitStats?.acSubmissionNum || [];
+  const acList = data.data?.matchedUser?.submitStats?.acSubmissionNum || [];
   const easySolved = acList.find((s) => s.difficulty === "Easy")?.count || 0;
   const mediumSolved =
     acList.find((s) => s.difficulty === "Medium")?.count || 0;
   const hardSolved = acList.find((s) => s.difficulty === "Hard")?.count || 0;
 
-  const recentSubs = subsData.data?.recentAcSubmissionList || [];
+  // Get submission calendar for complete history
+  const submissionCalendar = data.data?.matchedUser?.submissionCalendar;
+
+  const recentSubs = data.data?.recentAcSubmissionList || [];
   const nowUnix = Date.now() / 1000;
 
   // Always fetch last 24 hours first
@@ -186,6 +203,9 @@ export async function fetchLeetcodeStats(username, filterMode = "24hours") {
     (a, b) => b.timestamp - a.timestamp
   );
 
+  // Calculate longest streak from submission calendar (has all history)
+  const longestStreak = calculateLongestStreak(submissionCalendar);
+
   return {
     easySolved,
     mediumSolved,
@@ -194,11 +214,100 @@ export async function fetchLeetcodeStats(username, filterMode = "24hours") {
     recentSolved: problemMap.size,
     recentProblems: recentProblemsWithTime, // All 24h problems
     recentProblemsForDisplay: recentProblemsWithTime.slice(0, 3), // First 3 for card display
+    longestStreak,
   };
 }
 
-// Function to fetch daily challenge question
+// Helper function to calculate longest streak from submission calendar
+function calculateLongestStreak(submissionCalendar) {
+  if (!submissionCalendar) {
+    return 0;
+  }
+
+  // Parse the submission calendar JSON
+  let calendarData;
+  try {
+    calendarData = JSON.parse(submissionCalendar);
+  } catch (e) {
+    console.error("Failed to parse submission calendar:", e);
+    return 0;
+  }
+
+  // Get all days with at least one submission
+  const days = Object.keys(calendarData)
+    .filter((timestamp) => parseInt(calendarData[timestamp]) > 0)
+    .map((timestamp) => {
+      const date = new Date(parseInt(timestamp) * 1000);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}-${String(date.getDate()).padStart(2, "0")}`;
+    });
+
+  // Remove duplicates and sort
+  const uniqueDays = [...new Set(days)].sort();
+
+  if (uniqueDays.length === 0) {
+    return 0;
+  }
+
+  let longestStreak = 1;
+  let currentStreak = 1;
+
+  for (let i = 1; i < uniqueDays.length; i++) {
+    const prevDate = new Date(uniqueDays[i - 1] + "T00:00:00");
+    const currDate = new Date(uniqueDays[i] + "T00:00:00");
+
+    const diffTime = currDate - prevDate;
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) {
+      currentStreak++;
+      longestStreak = Math.max(longestStreak, currentStreak);
+    } else {
+      currentStreak = 1;
+    }
+  }
+
+  return longestStreak;
+}
+
+// Helper function to get midnight UTC timestamp
+function getNextMidnightUTC() {
+  const now = new Date();
+  const midnight = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate() + 1,
+      0,
+      0,
+      0,
+      0
+    )
+  );
+  return midnight.getTime();
+}
+
+// Function to fetch daily challenge question with caching
 export async function fetchDailyChallenge() {
+  const CACHE_KEY = "leetcode_daily_challenge";
+
+  // Check cache first
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const { data, expiresAt } = JSON.parse(cached);
+      if (Date.now() < expiresAt) {
+        console.log("Using cached daily challenge");
+        return data;
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to read daily challenge cache:", e);
+  }
+
+  // Fetch from API if no valid cache
   const headers = { "Content-Type": "application/json" };
 
   try {
@@ -212,14 +321,14 @@ export async function fetchDailyChallenge() {
       throw new Error("Failed to fetch daily challenge");
     }
 
-    const data = await response.json();
-    const challenge = data.data?.activeDailyCodingChallengeQuestion;
+    const responseData = await response.json();
+    const challenge = responseData.data?.activeDailyCodingChallengeQuestion;
 
     if (!challenge) {
       throw new Error("No daily challenge found");
     }
 
-    return {
+    const dailyChallengeData = {
       date: challenge.date,
       question: {
         title: challenge.question.title,
@@ -232,6 +341,21 @@ export async function fetchDailyChallenge() {
       },
       link: challenge.link,
     };
+
+    // Cache until midnight UTC
+    try {
+      localStorage.setItem(
+        CACHE_KEY,
+        JSON.stringify({
+          data: dailyChallengeData,
+          expiresAt: getNextMidnightUTC(),
+        })
+      );
+    } catch (e) {
+      console.warn("Failed to cache daily challenge:", e);
+    }
+
+    return dailyChallengeData;
   } catch (error) {
     console.error("Error fetching daily challenge:", error);
     throw error;
