@@ -5,12 +5,107 @@ import AddFriendForm from "./components/AddFriendForm";
 import RecentSolvesBox from "./components/RecentSolvesBox";
 import QuestionOfTheDayBox from "./components/QuestionOfTheDayBox";
 import Notification from "./components/Notification";
+import AuthButton from "./components/AuthButton";
 import { fetchLeetcodeStats, checkUserExists } from "./api/fetchLeetcodeStats";
+import {
+  signInWithGoogle,
+  logOut,
+  onAuthChange,
+  saveUserList,
+  loadUserList,
+} from "./firebase/auth";
 
 export default function App() {
+  const [user, setUser] = useState(null);
   const [usernames, setUsernames] = useState(
     () => JSON.parse(localStorage.getItem("leetcodeUsers")) || []
   );
+
+  // Track if we've loaded from cloud to prevent immediate overwrite
+  const [hasLoadedFromCloud, setHasLoadedFromCloud] = useState(false);
+
+  // Listen to auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthChange(async (currentUser) => {
+      setUser(currentUser);
+
+      if (currentUser) {
+        // User logged in - load their list from Firestore
+        try {
+          const cloudList = await loadUserList(currentUser.uid);
+          if (cloudList && cloudList.length > 0) {
+            // Merge with local list (prioritize cloud)
+            const localList =
+              JSON.parse(localStorage.getItem("leetcodeUsers")) || [];
+            const mergedList = [...new Set([...cloudList, ...localList])];
+            setUsernames(mergedList);
+            localStorage.setItem("leetcodeUsers", JSON.stringify(mergedList));
+
+            // If we merged new users, save back to cloud
+            if (mergedList.length > cloudList.length) {
+              await saveUserList(currentUser.uid, mergedList);
+            }
+          } else {
+            // No cloud data, use local data
+            const localList =
+              JSON.parse(localStorage.getItem("leetcodeUsers")) || [];
+            if (localList.length > 0) {
+              setUsernames(localList);
+              await saveUserList(currentUser.uid, localList);
+            }
+          }
+          setHasLoadedFromCloud(true);
+        } catch (error) {
+          console.error("Error loading user list from cloud:", error);
+          setHasLoadedFromCloud(true);
+        }
+      } else {
+        // User logged out, reset the flag
+        setHasLoadedFromCloud(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Sync usernames to cloud when they change (only if logged in and after initial load)
+  useEffect(() => {
+    if (user && hasLoadedFromCloud) {
+      saveUserList(user.uid, usernames).catch((error) => {
+        console.error("Error syncing to cloud:", error);
+      });
+    }
+  }, [user, usernames, hasLoadedFromCloud]);
+
+  const handleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+      setNotification({
+        type: "success",
+        message: "Successfully signed in with Google!",
+      });
+    } catch (error) {
+      setNotification({
+        type: "error",
+        message: "Failed to sign in. Please try again.",
+      });
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await logOut();
+      setNotification({
+        type: "success",
+        message: "Successfully signed out!",
+      });
+    } catch (error) {
+      setNotification({
+        type: "error",
+        message: "Failed to sign out. Please try again.",
+      });
+    }
+  };
   const [statsMap, setStatsMap] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(new Set());
@@ -264,6 +359,12 @@ export default function App() {
                 <span>{filterMode === "24hours" ? "Last 24h" : "Today"}</span>
               </button>
             )}
+            {/* Auth Button */}
+            <AuthButton
+              user={user}
+              onSignIn={handleSignIn}
+              onSignOut={handleSignOut}
+            />
           </div>
         </div>
 
